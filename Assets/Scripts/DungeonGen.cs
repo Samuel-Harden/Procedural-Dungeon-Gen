@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class DungeonGen : MonoBehaviour
 {
-    [Header("No of Rooms")]
     [SerializeField] int roomCount = 0;
     [SerializeField] int dungeonRadius = 0;
 
     [SerializeField] bool randNoRooms;
     [SerializeField] bool randDungeonSize;
+
     private int minDungeonRadius = 50;
     private int maxDungeonRadius = 100;
 
@@ -17,9 +17,14 @@ public class DungeonGen : MonoBehaviour
     private List<Vector3> positions;
     private List<Room> rooms;
 
+    private bool setupComplete;
+
+    private TileGeneration tileGenerator;
+
     private void Start()
     {
         roomGen = gameObject.GetComponent<RoomGen>();
+        tileGenerator = gameObject.GetComponent<TileGeneration>();
 
         positions = new List<Vector3>();
         rooms = new List<Room>();
@@ -30,19 +35,53 @@ public class DungeonGen : MonoBehaviour
     }
 
 
-    private void FixedUpdate()
+    private void Update()
     {
-        foreach (Room room in rooms)
-        {
-            room.CheckSpacing(rooms);
-        }
+        bool overlap = false;
 
-        //rooms[0].CheckSpacing(rooms);
+        if (!setupComplete)
+        {
+            foreach (Room room in rooms)
+            {
+                room.CheckSpacing(rooms);
+            }
+
+            foreach (Room room in rooms)
+            {
+                if (room.IsOverlapping())
+                    overlap = true;
+            }
+
+            if (!overlap)
+            {
+                //test.GenerateLayout(rooms);
+
+                foreach(Room room in rooms)
+                {
+                    room.SetPos();
+                }
+
+                foreach (Room room in rooms)
+                {
+                    if (room.IsOverlapping())
+                        overlap = true;
+                }
+
+                if (!overlap)
+                {
+                    Vector3 dungeonCentre = new Vector3((float)dungeonRadius / 2, 0.0f,
+                        (float)dungeonRadius / 2);
+
+                    tileGenerator.Initialize(rooms, dungeonCentre);
+                    setupComplete = true;
+                }
+            }
+        }
     }
 
     private void CheckSetDungeonSize()
     {
-        if(!randDungeonSize)
+        if (!randDungeonSize)
         {
             if (dungeonRadius >= minDungeonRadius && dungeonRadius <= maxDungeonRadius)
                 return;
@@ -56,9 +95,9 @@ public class DungeonGen : MonoBehaviour
     {
         Gizmos.color = Color.white;
 
-        foreach (Room room in rooms)
+        foreach (Tile tile in grid)
         {
-            Gizmos.DrawWireSphere(room.GetRoomPos(), 1);
+            Gizmos.DrawWireSphere(tile.transform.position, 1);
         }
     }*/
 }

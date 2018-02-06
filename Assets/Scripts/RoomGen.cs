@@ -5,7 +5,7 @@ using UnityEngine;
 public class RoomGen : MonoBehaviour
 {
     private int minRoomCount = 10;
-    private int maxRoomCount = 100;
+    private int maxRoomCount = 1000;
 
     private int roomCount = 0;
 
@@ -43,6 +43,8 @@ public class RoomGen : MonoBehaviour
 
         Color color = Color.white;
 
+        string layer = "SmallRoom";
+
         for (int i = 0; i < roomCount; i++)
         {
 
@@ -60,26 +62,31 @@ public class RoomGen : MonoBehaviour
 
             Vector2 roomSize = GenerateRoomSize(_dungeonRadius);
 
-            var abc = Instantiate(room, newPos, Quaternion.identity);
+            var newRoom = Instantiate(room, newPos, Quaternion.identity);
 
-            abc.transform.localScale = new Vector3(roomSize.x, 1.0f, roomSize.y);
+            newRoom.transform.localScale = new Vector3(roomSize.x, 1.0f, roomSize.y);
 
-            _rooms.Add(abc.GetComponent<Room>());
+            _rooms.Add(newRoom.GetComponent<Room>());
 
-            abc.GetComponent<Room>().Initialise((int)roomSize.x, (int)roomSize.y, newPos, counter, i);
+            newRoom.GetComponent<Room>().Initialise((int)roomSize.x, (int)roomSize.y, newPos, counter, i);
 
-            abc.GetComponent<Renderer>().material.color = color;
+            newRoom.GetComponent<Renderer>().material.color = color;
+
+            newRoom.layer = LayerMask.NameToLayer(layer);
+
 
             if (i == noSmallRooms)
             {
                 counter++;
                 color = Color.grey;
+                layer = "MediumRoom";
             }
 
             else if (i == noSmallRooms + noMediumRooms)
             {
                 counter++;
                 color = Color.black;
+                layer = "LargeRoom";
             }
         }
     }
@@ -92,9 +99,8 @@ public class RoomGen : MonoBehaviour
 
         if (currentSmall <= noSmallRooms)
         {
-            // Generate small Room 3% - 5%
-            smallest_size *= 3;
-            largest_size  *= 6;
+            smallest_size *= 2;
+            largest_size  *= 4;
 
             currentSmall++;
             goto setSize;
@@ -102,9 +108,8 @@ public class RoomGen : MonoBehaviour
 
         if (currentMedium <= noMediumRooms)
         {
-            // Generate medium Room 6% - 10%
-            smallest_size *= 7;
-            largest_size  *= 15;
+            smallest_size *= 4;
+            largest_size  *= 6;
 
             currentMedium++;
             goto setSize;
@@ -112,9 +117,8 @@ public class RoomGen : MonoBehaviour
 
         if (currentLarge <= noLargeRooms)
         {
-            // Generate large Room 11% - 15%
-            smallest_size *= 16;
-            largest_size  *= 20;
+            smallest_size *= 6;
+            largest_size  *= 10;
 
             currentLarge++;
             goto setSize;
@@ -122,8 +126,8 @@ public class RoomGen : MonoBehaviour
 
         setSize:
 
-        Vector2 size = new Vector2(Mathf.RoundToInt(Random.Range(smallest_size, largest_size)),
-            Mathf.RoundToInt(Random.Range(smallest_size, largest_size)));
+        Vector2 size = new Vector2(Mathf.RoundToInt(Random.Range(smallest_size, largest_size)) * 2 ,
+            Mathf.RoundToInt(Random.Range(smallest_size, largest_size)) * 2);
 
         return size;
     }
@@ -131,9 +135,9 @@ public class RoomGen : MonoBehaviour
 
     private void GenerateNoRooms()
     {
-        float largeRoomDensity = 10;
-        float mediumRoomDensity =10;
-        float smallRoomDensity = 80;
+        float largeRoomDensity  = 4;
+        float mediumRoomDensity = 12;
+        float smallRoomDensity  = 84;
 
         float total = largeRoomDensity + mediumRoomDensity + smallRoomDensity;
 

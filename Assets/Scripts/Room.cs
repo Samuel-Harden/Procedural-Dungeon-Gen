@@ -7,15 +7,13 @@ public class Room : MonoBehaviour
     private int roomWidth;
     private int roomHeight;
 
-    private Vector3 roomPos;
     private Vector3 roomBoundsPoint;
 
     Vector3 velocity;
     Vector3 acceleration;
 
-    float maxSpeed = 1.0f;
-    float maxForce = 0.1f;
-    float desiredSeperation = 5.0f;
+    float maxSpeed = 0.5f;
+    float maxForce = 0.5f;
     bool overlapping;
 
     int RoomID;
@@ -24,10 +22,7 @@ public class Room : MonoBehaviour
     {
         roomWidth  = _roomWidth;
         roomHeight = _roomHeight;
-        roomPos    = _roomPos;
         RoomID     = _roomID;
-
-        desiredSeperation = 100.0f;
 
         overlapping = true;
     }
@@ -35,8 +30,8 @@ public class Room : MonoBehaviour
 
     public void CheckSpacing(List<Room> _rooms)
     {
-        roomBoundsPoint = new Vector3(transform.position.x - (float)roomWidth / 2 + 2, 0.0f,
-            transform.position.z - (float)roomHeight / 2 + 2);
+        roomBoundsPoint = new Vector3(transform.position.x - roomWidth / 2, 0.0f,
+            transform.position.z - roomHeight / 2);
 
         List<Room> overlappingRooms = new List<Room>();
 
@@ -78,16 +73,16 @@ public class Room : MonoBehaviour
                 continue;
             // ((A.X + A.Width) >= (B.X) &&
             if ((roomBoundsPoint.x + roomWidth)
-                >= (_rooms[i].GetRoomBoundsPoint().x) &&
+                > (_rooms[i].GetRoomBoundsPoint().x) &&
                 // (A.X) <= (B.X + B.Width) &&
-                (roomBoundsPoint.x) <= (_rooms[i].GetRoomBoundsPoint().x
+                (roomBoundsPoint.x) < (_rooms[i].GetRoomBoundsPoint().x
                     + _rooms[i].GetRoomWidth()) &&
 
                 // (A.Y + A.Height) >= (B.Y) &&
                 (roomBoundsPoint.z + roomHeight)
-                >= (_rooms[i].GetRoomBoundsPoint().z) &&
+                > (_rooms[i].GetRoomBoundsPoint().z) &&
                 // (A.Y) <= (B.Y + B.Height))
-                (roomBoundsPoint.z) <= (_rooms[i].GetRoomBoundsPoint().z
+                (roomBoundsPoint.z) < (_rooms[i].GetRoomBoundsPoint().z
                     + _rooms[i].GetRoomHeight()))
             {
                 overlappingRooms.Add(_rooms[i]);
@@ -107,7 +102,7 @@ public class Room : MonoBehaviour
         {
             float d = Vector3.Distance(transform.position, _rooms[i].transform.position);
             // Calculate vector pointing away from other rooms
-            if (d > 0 && d < desiredSeperation)
+            if (d > 0)
             {
                 Vector3 diff = (transform.position - _rooms[i].transform.position);
                 diff.Normalize();
@@ -133,9 +128,30 @@ public class Room : MonoBehaviour
             steer.Normalize();
             steer = (steer * maxSpeed);
             steer = (steer - velocity);
-            //steer.limit (maxForce);
-            steer = Vector3.ClampMagnitude(steer, maxForce);
+
+            //steer = Vector3.ClampMagnitude(steer, maxForce);
         }
+
+        if (steer.x > 0.0f)
+        {
+            steer = new Vector3(0.5f, 0.0f, steer.z);
+        }
+
+        if (steer.z > 0.0f)
+        {
+            steer = new Vector3(steer.x, 0.0f, 0.5f);
+        }
+
+        if (steer.x < 0.0f)
+        {
+            steer = new Vector3(-0.5f, 0.0f, steer.z);
+        }
+
+        if (steer.z < 0.0f)
+        {
+            steer = new Vector3(steer.x, 0.0f, -0.5f);
+        }
+
         return steer;
     }
 
@@ -151,14 +167,32 @@ public class Room : MonoBehaviour
     }
 
 
-    public Vector3 GetRoomPos()
-    {
-        return roomPos;
-    }
-
-
     public Vector3 GetRoomBoundsPoint()
     {
         return roomBoundsPoint;
+    }
+
+
+    public bool IsOverlapping()
+    {
+        return overlapping;
+    }
+
+
+    public void SetPos()
+    {
+        transform.position = new Vector3(Mathf.RoundToInt(transform.position.x),
+        0.0f, Mathf.RoundToInt(transform.position.z));
+
+        roomBoundsPoint = new Vector3(Mathf.RoundToInt(transform.position.x - roomWidth / 2),
+        0.0f, Mathf.RoundToInt(transform.position.z - roomHeight / 2));
+    }
+
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+
+        Gizmos.DrawWireCube(transform.position, transform.localScale);
     }
 }
