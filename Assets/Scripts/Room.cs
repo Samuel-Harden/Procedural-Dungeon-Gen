@@ -15,16 +15,24 @@ public class Room : MonoBehaviour
     float maxSpeed = 0.5f;
     float maxForce = 0.5f;
     bool overlapping;
+    bool connectedToMain;
 
-    int RoomID;
+    int roomID;
+    int roomType;
 
-    public void Initialise(int _roomWidth, int _roomHeight, Vector3 _roomPos, int _roomSize, int _roomID)
+    List<Room> connectedRooms;
+
+    public void Initialise(int _roomWidth, int _roomHeight, Vector3 _roomPos, int _roomType, int _roomID)
     {
         roomWidth  = _roomWidth;
         roomHeight = _roomHeight;
-        RoomID     = _roomID;
+        roomID     = _roomID;
+        roomType = _roomType;
 
         overlapping = true;
+        connectedToMain = false;
+
+        connectedRooms = new List<Room>();
     }
 
 
@@ -69,7 +77,7 @@ public class Room : MonoBehaviour
 
         for (int i = 0; i < _rooms.Count; i++)
         {
-            if (i == RoomID)
+            if (i == roomID)
                 continue;
             // ((A.X + A.Width) >= (B.X) &&
             if ((roomBoundsPoint.x + roomWidth)
@@ -179,6 +187,42 @@ public class Room : MonoBehaviour
     }
 
 
+    public int GetRoomID()
+    {
+        return roomID;
+    }
+
+
+    public int GetRoomType()
+    {
+        return roomType;
+    }
+
+
+    public int GetRoomArea()
+    {
+        return roomWidth * roomHeight;
+    }
+
+
+    public void ConnectToMain()
+    {
+        connectedToMain = true;
+    }
+
+
+    public bool ConnectedToMain()
+    {
+        return connectedToMain;
+    }
+
+
+    public void SetConnectedRooms(Room connections)
+    {
+        connectedRooms.Add(connections);
+    }
+
+
     public void SetPos()
     {
         transform.position = new Vector3(Mathf.RoundToInt(transform.position.x),
@@ -194,5 +238,14 @@ public class Room : MonoBehaviour
         Gizmos.color = Color.red;
 
         Gizmos.DrawWireCube(transform.position, transform.localScale);
+
+        if(connectedRooms != null)
+        {
+            foreach (Room room in connectedRooms)
+            {
+                Gizmos.color = Color.white;
+                Gizmos.DrawLine(transform.position, room.transform.position);
+            }
+        }
     }
 }

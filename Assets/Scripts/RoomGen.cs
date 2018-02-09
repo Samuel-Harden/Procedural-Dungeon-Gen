@@ -136,8 +136,8 @@ public class RoomGen : MonoBehaviour
     private void GenerateNoRooms()
     {
         float largeRoomDensity  = 4;
-        float mediumRoomDensity = 12;
-        float smallRoomDensity  = 84;
+        float mediumRoomDensity = 20;
+        float smallRoomDensity  = 76;
 
         float total = largeRoomDensity + mediumRoomDensity + smallRoomDensity;
 

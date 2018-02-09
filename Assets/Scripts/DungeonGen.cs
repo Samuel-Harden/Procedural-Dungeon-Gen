@@ -20,11 +20,15 @@ public class DungeonGen : MonoBehaviour
     private bool setupComplete;
 
     private TileGeneration tileGenerator;
+    //private Triangulation triangulate;
+    private PathGen pathGen;
 
     private void Start()
     {
         roomGen = gameObject.GetComponent<RoomGen>();
         tileGenerator = gameObject.GetComponent<TileGeneration>();
+        //triangulate = gameObject.GetComponent<Triangulation>();
+        pathGen = gameObject.GetComponent<PathGen>();
 
         positions = new List<Vector3>();
         rooms = new List<Room>();
@@ -72,7 +76,9 @@ public class DungeonGen : MonoBehaviour
                     Vector3 dungeonCentre = new Vector3((float)dungeonRadius / 2, 0.0f,
                         (float)dungeonRadius / 2);
 
-                    tileGenerator.Initialize(rooms, dungeonCentre);
+                    pathGen.Initialize(rooms);
+
+                    //tileGenerator.Initialize(rooms, dungeonCentre);
                     setupComplete = true;
                 }
             }
