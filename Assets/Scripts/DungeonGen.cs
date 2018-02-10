@@ -10,6 +10,8 @@ public class DungeonGen : MonoBehaviour
     [SerializeField] bool randNoRooms;
     [SerializeField] bool randDungeonSize;
 
+    [SerializeField] Transform roomContainer;
+
     private int minDungeonRadius = 50;
     private int maxDungeonRadius = 100;
 
@@ -23,6 +25,9 @@ public class DungeonGen : MonoBehaviour
     //private Triangulation triangulate;
     private PathGen pathGen;
 
+    private List<Vector3> roomPos;
+    private List<Vector3> roomConnections;
+
     private void Start()
     {
         roomGen = gameObject.GetComponent<RoomGen>();
@@ -32,6 +37,9 @@ public class DungeonGen : MonoBehaviour
 
         positions = new List<Vector3>();
         rooms = new List<Room>();
+
+        roomPos = new List<Vector3>();
+        roomConnections = new List<Vector3>();
 
         CheckSetDungeonSize();
 
@@ -76,14 +84,27 @@ public class DungeonGen : MonoBehaviour
                     Vector3 dungeonCentre = new Vector3((float)dungeonRadius / 2, 0.0f,
                         (float)dungeonRadius / 2);
 
+                    AddRoomsToContainer();
+
                     pathGen.Initialize(rooms);
 
-                    //tileGenerator.Initialize(rooms, dungeonCentre);
+                    tileGenerator.Initialize(rooms, dungeonCentre);
+
                     setupComplete = true;
                 }
             }
         }
     }
+
+
+    private void AddRoomsToContainer()
+    {
+        foreach (Room room in rooms)
+        {
+            room.transform.SetParent(roomContainer);
+        }
+    }
+
 
     private void CheckSetDungeonSize()
     {

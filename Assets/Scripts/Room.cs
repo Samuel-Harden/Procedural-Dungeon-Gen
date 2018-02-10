@@ -20,7 +20,7 @@ public class Room : MonoBehaviour
     int roomID;
     int roomType;
 
-    List<Room> connectedRooms;
+    List<Room> connectedRoom;
 
     public void Initialise(int _roomWidth, int _roomHeight, Vector3 _roomPos, int _roomType, int _roomID)
     {
@@ -32,7 +32,7 @@ public class Room : MonoBehaviour
         overlapping = true;
         connectedToMain = false;
 
-        connectedRooms = new List<Room>();
+        connectedRoom = new List<Room>();
     }
 
 
@@ -43,7 +43,7 @@ public class Room : MonoBehaviour
 
         List<Room> overlappingRooms = new List<Room>();
 
-        overlappingRooms = CollisionCheck(_rooms);
+        overlappingRooms = OverlapCheck(_rooms);
 
         if (overlappingRooms.Count != 0)
         {
@@ -71,7 +71,7 @@ public class Room : MonoBehaviour
     }
 
 
-    List<Room> CollisionCheck(List<Room> _rooms)
+    List<Room> OverlapCheck(List<Room> _rooms)
     {
         List<Room> overlappingRooms = new List<Room>();
 
@@ -79,17 +79,17 @@ public class Room : MonoBehaviour
         {
             if (i == roomID)
                 continue;
-            // ((A.X + A.Width) >= (B.X) &&
+            // ((A.X + A.Width) > (B.X) &&
             if ((roomBoundsPoint.x + roomWidth)
                 > (_rooms[i].GetRoomBoundsPoint().x) &&
-                // (A.X) <= (B.X + B.Width) &&
+                // (A.X) < (B.X + B.Width) &&
                 (roomBoundsPoint.x) < (_rooms[i].GetRoomBoundsPoint().x
                     + _rooms[i].GetRoomWidth()) &&
 
-                // (A.Y + A.Height) >= (B.Y) &&
+                // (A.Y + A.Height) > (B.Y) &&
                 (roomBoundsPoint.z + roomHeight)
                 > (_rooms[i].GetRoomBoundsPoint().z) &&
-                // (A.Y) <= (B.Y + B.Height))
+                // (A.Y) < (B.Y + B.Height))
                 (roomBoundsPoint.z) < (_rooms[i].GetRoomBoundsPoint().z
                     + _rooms[i].GetRoomHeight()))
             {
@@ -100,12 +100,49 @@ public class Room : MonoBehaviour
     }
 
 
+    public void BorderCheck(Room _room)
+    {
+        // If im already connected to this room, return
+        foreach(Room room in connectedRoom)
+        {
+            if(_room.GetRoomID() == room.GetRoomID())
+            {
+                return;
+            }
+        }
+
+        // ((A.X + A.Width) >= (B.X) &&
+        if ((roomBoundsPoint.x + roomWidth)
+                >= (_room.GetRoomBoundsPoint().x) &&
+            // (A.X) <= (B.X + B.Width) &&
+            (roomBoundsPoint.x) <= (_room.GetRoomBoundsPoint().x
+                + _room.GetRoomWidth()) &&
+
+            // (A.Y + A.Height) >= (B.Y) &&
+            (roomBoundsPoint.z + roomHeight)
+                >= (_room.GetRoomBoundsPoint().z) &&
+            // (A.Y) <= (B.Y + B.Height))
+            (roomBoundsPoint.z) <= (_room.GetRoomBoundsPoint().z
+                + _room.GetRoomHeight()))
+        {
+            connectedRoom.Add(_room);
+
+            if(_room.ConnectedToMain())
+            {
+                connectedToMain = true;
+            }
+
+            _room.connectedRoom.Add(this);
+        }
+    }
+
+
     Vector3 Seperate(List<Room> _rooms)
     {
         Vector3 steer = Vector3.zero;
         int count = 0;
 
-        // check through every other room
+        // check through every other _room
         for (int i = 0; i < _rooms.Count; i++)
         {
             float d = Vector3.Distance(transform.position, _rooms[i].transform.position);
@@ -217,9 +254,19 @@ public class Room : MonoBehaviour
     }
 
 
-    public void SetConnectedRooms(Room connections)
+    public void AddConnectedRoom(Room connections)
     {
-        connectedRooms.Add(connections);
+        connectedRoom.Add(connections);
+    }
+
+
+    public Vector3 GetConnectedRoom()
+    {
+        if (connectedRoom.Count > 0)
+            return connectedRoom[0].transform.position;
+
+        else
+            return Vector3.zero;
     }
 
 
@@ -237,11 +284,15 @@ public class Room : MonoBehaviour
     {
         Gizmos.color = Color.red;
 
-        Gizmos.DrawWireCube(transform.position, transform.localScale);
-
-        if(connectedRooms != null)
+        if(roomType != 0)
         {
-            foreach (Room room in connectedRooms)
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireCube(transform.position, transform.localScale);
+        }
+
+        if (connectedRoom != null)
+        {
+            foreach (Room room in connectedRoom)
             {
                 Gizmos.color = Color.white;
                 Gizmos.DrawLine(transform.position, room.transform.position);

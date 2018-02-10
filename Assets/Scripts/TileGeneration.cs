@@ -38,7 +38,7 @@ public class TileGeneration : MonoBehaviour
 
         GenerateTileMap();
 
-        CleanUpRooms(_rooms);
+        //CleanUpRooms(_rooms);
     }
 
 
@@ -59,17 +59,26 @@ public class TileGeneration : MonoBehaviour
         {
             for (int w = 0; w < mapWidth; w++)
             {
-                bool dungeon = (Physics.CheckSphere(checkPos, ((float)tileSize / 3), checkLayers));
+                Collider[] coll = (Physics.OverlapSphere(checkPos, ((float)tileSize / 3), checkLayers));
 
-                if(dungeon)
+                if (coll.Length == 1)
                 {
-                    var tile = Instantiate(tilePrefab, spawnPos, Quaternion.identity);
+                    if (coll[0].gameObject.layer != LayerMask.NameToLayer("SmallRoom"))
+                    {
+                        var tile = Instantiate(tilePrefab, spawnPos, Quaternion.identity);
 
-                    tileMap[w, h] = tile;
+                        if (coll[0].gameObject.layer == LayerMask.NameToLayer("MediumRoom"))
+                            tile.gameObject.GetComponent<Renderer>().material.color = Color.grey;
 
-                    //tile.transform.position = spawnPos;
+                        else if (coll[0].gameObject.layer == LayerMask.NameToLayer("LargeRoom"))
+                            tile.gameObject.GetComponent<Renderer>().material.color = Color.black;
 
-                    tile.transform.localScale = Vector3.one;
+                        tile.GetComponent<Tile>().SetData(w, h, coll[0].gameObject.GetComponent<Room>().GetRoomID());
+
+                        tileMap[w, h] = tile;
+
+                        tile.transform.localScale = Vector3.one;
+                    }
                 }
 
                 spawnPos.x += tileSize;

@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    public Vector3 world_pos;
+    int row, column, roomID;
 
-    public Tile(Vector3 _world_pos)
+    public void SetData(int _col, int _row, int _roomID)
     {
-        
-        world_pos = _world_pos;
+        row = _row;
+        column = _col;
+        roomID = _roomID;
     }
 }

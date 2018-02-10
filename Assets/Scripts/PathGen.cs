@@ -7,26 +7,12 @@ public class PathGen : MonoBehaviour
 {
     int mainRoomID;
 
-    Vector3 mainRoomPos;
-
-    // identlfy main
-    // connect 2-3 nearest rooms
+    int roomNo = 0;
 
     List<Room> roomsToCheck;
 
-    Vector3 pos1;
-    Vector3 pos2;
-    Vector3 Po3;
-
-    Vector3 dir1;
-    Vector3 dir2;
-
-
-    private void Start()
-    {
-        abc();
-    }
-
+    List<Room> connectedRooms;
+    List<Room> unConnectedRooms;
 
     public void Initialize(List<Room> _rooms)
     {
@@ -34,15 +20,15 @@ public class PathGen : MonoBehaviour
 
         ClearSmallRooms(_rooms);
 
-        IdentifyMainRoom();
+        //IdentifyMainRoom(_rooms);
 
-        //ConnectRooms();
+        ConnectRooms();
 
-        abc();
+        //abc();
     }
 
 
-    private void IdentifyMainRoom()
+    private void IdentifyMainRoom(List<Room>_rooms)
     {
         int roomSize = 0;
         mainRoomID = 0;
@@ -52,6 +38,8 @@ public class PathGen : MonoBehaviour
             if (room.GetRoomArea() > roomSize)
             {
                 mainRoomID = room.GetRoomID();
+                // Connect room to main
+
             }
         }
     }
@@ -69,70 +57,77 @@ public class PathGen : MonoBehaviour
     }
 
 
-    private void abc()
+    private void ConnectBorderingRooms()
     {
-        // order positions by X axis
-        // Sweep across
-        // start with the first three points, find the circumcentre and Radius
-        // check if anyother points are in its area, valid triangle if so
-
-
-
-        List<Vector3> positions = new List<Vector3>();
-
-        roomsToCheck = roomsToCheck.OrderBy(c => c.transform.position.x).ToList();
-
-        positions.Add(roomsToCheck[0].transform.position);
-        positions.Add(roomsToCheck[1].transform.position);
-        positions.Add(roomsToCheck[2].transform.position);
-
-        //Check where 2 sides they cross
-
-        // find 1st midpoint
-        Vector3 pos1 = positions[0] + positions[1] / 2;
-
-        // heading = target - pos
-        Vector3 dir1 = positions[1] - positions[0] + Vector3.right;
-
-
-        Vector3 pos2 = positions[1] + positions[2] / 2;
-
-        Vector3 dir2 = positions[2] - positions[1] + Vector3.right;
+        foreach(Room room in roomsToCheck)
+        {
+            for (int i = 0; i < roomsToCheck.Count; i++)
+            {
+                if(room.GetRoomID() != roomsToCheck[i].GetRoomID())
+                {
+                    room.BorderCheck(roomsToCheck[i]);
+                }
+            }
+        }
     }
 
 
     private void ConnectRooms()
     {
-        // Sweep across
-        // start withthe first three points, find the circumcentre and Radius
-        // check if anyother points are in its area, valid triangle if so
+        connectedRooms   = new List<Room>();
+        unConnectedRooms = new List<Room>();
 
-        /*for (int i = 0; i < roomsToCheck.Count; i++)
+        connectedRooms.Add(roomsToCheck[0]);
+
+        // Set First room as main essentially
+        connectedRooms[0].ConnectToMain();
+
+        // Create list for all unconnected rooms
+        foreach (Room room in roomsToCheck)
         {
-            List<Room> nearestRooms = new List<Room>();
+            if (!room.ConnectedToMain())
+                unConnectedRooms.Add(room);
+        }
 
-            if (!roomsToCheck[i].ConnectedToMain())
+        //Debug.Log(unConnectedRooms.Count);
+
+        ConnectBorderingRooms();
+
+        // pass in first room
+        ConnectNextRoom(connectedRooms[0]);
+    }
+
+
+    private void ConnectNextRoom(Room _room)
+    { 
+         unConnectedRooms = unConnectedRooms.OrderBy(room => Vector3.Distance(room.transform.position, _room.transform.position)).ToList();
+
+        float dist = 1000.0f;
+        
+        for (int i = 0; i < connectedRooms.Count; i++)
+        {
+            if (Vector3.Distance(unConnectedRooms[0].transform.position, connectedRooms[i].transform.position) < dist)
             {
-                roomsToCheck[i].ConnectToMain();
-
-                foreach (Room room in roomsToCheck)
-                {
-                    // if room is not this room
-                    if (room.transform.position != roomsToCheck[i].transform.position /*&& !room.ConnectedToMain())
-                        nearestRooms.Add(room);
-                }
-
-                //order by distance
-                nearestRooms = nearestRooms.OrderBy(room => Vector3.Distance(room.transform.position,
-                    roomsToCheck[i].transform.position)).ToList();
-
-                if (nearestRooms.Count > 0)
-                {
-                    nearestRooms[0].SetConnectedRooms(roomsToCheck[i]);
-                    nearestRooms[1].SetConnectedRooms(roomsToCheck[i]);
-                    //Debug.DrawLine(roomsToCheck[i].transform.position, nearestRooms[0].transform.position);
-                }
+                dist = Vector3.Distance(unConnectedRooms[0].transform.position, connectedRooms[i].transform.position);
+                roomNo = i;
             }
-        }*/
+        }
+
+        // Now have closest room, Connect Rooms
+        connectedRooms[roomNo].AddConnectedRoom(unConnectedRooms[0]);
+        unConnectedRooms[0].AddConnectedRoom(connectedRooms[roomNo]);
+
+        // Add to connected Rooms list
+        unConnectedRooms[0].ConnectToMain();
+        connectedRooms.Add(unConnectedRooms[0]);
+
+
+        // Remove from unconnected list
+        unConnectedRooms.RemoveAt(0);
+
+        roomNo++;
+
+        if (unConnectedRooms.Count > 0)
+            ConnectNextRoom(connectedRooms[roomNo]);
     }
 }
