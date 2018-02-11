@@ -5,70 +5,47 @@ using System.Linq;
 
 public class PathGen : MonoBehaviour
 {
-    int mainRoomID;
-
     int roomNo = 0;
 
     List<Room> roomsToCheck;
-
     List<Room> connectedRooms;
     List<Room> unConnectedRooms;
 
-    public void Initialize(List<Room> _rooms)
+    int smallRoomPercentage;
+
+
+    public void Initialize(List<Room> _rooms, int _smallRoomPercentage)
     {
+        smallRoomPercentage = _smallRoomPercentage;
+
         roomsToCheck = new List<Room>();
 
-        ClearSmallRooms(_rooms);
-
-        //IdentifyMainRoom(_rooms);
+        DiscardSmallRooms(_rooms);
 
         ConnectRooms();
-
-        //abc();
     }
 
 
-    private void IdentifyMainRoom(List<Room>_rooms)
-    {
-        int roomSize = 0;
-        mainRoomID = 0;
-
-        foreach(Room room in roomsToCheck)
-        {
-            if (room.GetRoomArea() > roomSize)
-            {
-                mainRoomID = room.GetRoomID();
-                // Connect room to main
-
-            }
-        }
-    }
-
-
-    private void ClearSmallRooms(List<Room> _rooms)
+    private void DiscardSmallRooms(List<Room> _rooms)
     {
         foreach (Room room in _rooms)
         {
+            // Random Chance to add a small room
+            if(Random.Range(0, 100) < smallRoomPercentage)
+            {
+                roomsToCheck.Add(room);
+                continue;
+            }
+
             // if room is med or large and room is not the main room
             if (room.GetRoomType() != 0)
                 roomsToCheck.Add(room);
+
+            else
+                //room.gameObject.SetActive(false);
+                Destroy(room.gameObject);
         }
 
-    }
-
-
-    private void ConnectBorderingRooms()
-    {
-        foreach(Room room in roomsToCheck)
-        {
-            for (int i = 0; i < roomsToCheck.Count; i++)
-            {
-                if(room.GetRoomID() != roomsToCheck[i].GetRoomID())
-                {
-                    room.BorderCheck(roomsToCheck[i]);
-                }
-            }
-        }
     }
 
 
@@ -77,50 +54,77 @@ public class PathGen : MonoBehaviour
         connectedRooms   = new List<Room>();
         unConnectedRooms = new List<Room>();
 
-        connectedRooms.Add(roomsToCheck[0]);
+        // dont need as it gets added in loop below...
+        //connectedRooms.Add(roomsToCheck[0]);
 
         // Set First room as main essentially
-        connectedRooms[0].ConnectToMain();
+        roomsToCheck[0].ConnectToMain();
 
-        // Create list for all unconnected rooms
+        // Connect any rooms that share borders,
+        // Will also update connected to Main if main room
+        // Shares a border(s)
+        ConnectBorderingRooms();
+
+        // Create lists for connected and unconnected rooms
         foreach (Room room in roomsToCheck)
         {
             if (!room.ConnectedToMain())
                 unConnectedRooms.Add(room);
+
+            else
+                connectedRooms.Add(room);
         }
-
-        //Debug.Log(unConnectedRooms.Count);
-
-        ConnectBorderingRooms();
 
         // pass in first room
         ConnectNextRoom(connectedRooms[0]);
     }
 
 
+    private void ConnectBorderingRooms()
+    {
+        foreach (Room room in roomsToCheck)
+        {
+            for (int i = 0; i < roomsToCheck.Count; i++)
+            {
+                if (room.GetRoomID() != roomsToCheck[i].GetRoomID())
+                {
+                    room.BorderCheck(roomsToCheck[i]);
+                }
+            }
+        }
+
+        // Clears any rooms that have connected to a room twice
+        ClearDuplicates();
+
+        roomsToCheck[0].CheckConnectionToMain(roomsToCheck[0].GetRoomID());
+    }
+
+
     private void ConnectNextRoom(Room _room)
     { 
-         unConnectedRooms = unConnectedRooms.OrderBy(room => Vector3.Distance(room.transform.position, _room.transform.position)).ToList();
+        // sort by how close they are to the next conected room 
+        unConnectedRooms = unConnectedRooms.OrderBy(room => Vector3.Distance(room.transform.position, _room.transform.position)).ToList();
 
-        float dist = 1000.0f;
+        float dist = Vector3.Distance(_room.transform.position, unConnectedRooms[0].transform.position);
         
         for (int i = 0; i < connectedRooms.Count; i++)
         {
-            if (Vector3.Distance(unConnectedRooms[0].transform.position, connectedRooms[i].transform.position) < dist)
+            if (Vector3.Distance(connectedRooms[i].transform.position, unConnectedRooms[0].transform.position) < dist)
             {
                 dist = Vector3.Distance(unConnectedRooms[0].transform.position, connectedRooms[i].transform.position);
                 roomNo = i;
             }
         }
 
-        // Now have closest room, Connect Rooms
+        // Now have closest room, Connect Rooms to each other
         connectedRooms[roomNo].AddConnectedRoom(unConnectedRooms[0]);
+
         unConnectedRooms[0].AddConnectedRoom(connectedRooms[roomNo]);
 
         // Add to connected Rooms list
         unConnectedRooms[0].ConnectToMain();
-        connectedRooms.Add(unConnectedRooms[0]);
 
+        connectedRooms.Add(unConnectedRooms[0]);
 
         // Remove from unconnected list
         unConnectedRooms.RemoveAt(0);
@@ -129,5 +133,26 @@ public class PathGen : MonoBehaviour
 
         if (unConnectedRooms.Count > 0)
             ConnectNextRoom(connectedRooms[roomNo]);
+
+        // Add room ready for tile generation
+        foreach(Room room in connectedRooms)
+        {
+            room.AddToTileGeneration();
+        }
+    }
+
+
+    private void ClearDuplicates()
+    {
+        foreach (Room room in connectedRooms)
+        {
+            room.TidyConnected();
+        }
+    }
+
+
+    public List<Room> GetConnectedRooms()
+    {
+        return connectedRooms;
     }
 }

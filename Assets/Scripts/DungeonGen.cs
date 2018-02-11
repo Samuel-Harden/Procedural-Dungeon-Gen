@@ -9,6 +9,10 @@ public class DungeonGen : MonoBehaviour
 
     [SerializeField] bool randNoRooms;
     [SerializeField] bool randDungeonSize;
+    [SerializeField] bool generateTiles;
+
+    [Header("% of Small Rooms (Cannot exceed 100%)")]
+    [SerializeField] int smallRoomPercentage;
 
     [SerializeField] Transform roomContainer;
 
@@ -44,6 +48,12 @@ public class DungeonGen : MonoBehaviour
         CheckSetDungeonSize();
 
         roomGen.GenerateRooms(rooms, roomCount, dungeonRadius, randNoRooms);
+
+        if (smallRoomPercentage > 100)
+            smallRoomPercentage = 100;
+
+        if (smallRoomPercentage < 0)
+            smallRoomPercentage = 0;
     }
 
 
@@ -86,9 +96,10 @@ public class DungeonGen : MonoBehaviour
 
                     AddRoomsToContainer();
 
-                    pathGen.Initialize(rooms);
+                    pathGen.Initialize(rooms, smallRoomPercentage);
 
-                    tileGenerator.Initialize(rooms, dungeonCentre);
+                    if(generateTiles)
+                    tileGenerator.Initialize(pathGen.GetConnectedRooms(), dungeonCentre);
 
                     setupComplete = true;
                 }

@@ -6,6 +6,8 @@ public class TileGeneration : MonoBehaviour
 {
     [SerializeField] LayerMask checkLayers;
 
+    [SerializeField] GameObject tileContainer;
+
     [SerializeField] GameObject tilePrefab;
 
     private GameObject[,] tileMap;
@@ -61,24 +63,38 @@ public class TileGeneration : MonoBehaviour
             {
                 Collider[] coll = (Physics.OverlapSphere(checkPos, ((float)tileSize / 3), checkLayers));
 
-                if (coll.Length == 1)
+                if (coll.Length == 1 && coll[0].gameObject.GetComponent<Room>().GenerateTile())
                 {
-                    if (coll[0].gameObject.layer != LayerMask.NameToLayer("SmallRoom"))
-                    {
-                        var tile = Instantiate(tilePrefab, spawnPos, Quaternion.identity);
+                    var tile = Instantiate(tilePrefab, spawnPos, Quaternion.identity);
 
-                        if (coll[0].gameObject.layer == LayerMask.NameToLayer("MediumRoom"))
-                            tile.gameObject.GetComponent<Renderer>().material.color = Color.grey;
+                    if (coll[0].gameObject.layer == LayerMask.NameToLayer("MediumRoom"))
+                        tile.gameObject.GetComponent<Renderer>().material.color = Color.grey;
 
-                        else if (coll[0].gameObject.layer == LayerMask.NameToLayer("LargeRoom"))
-                            tile.gameObject.GetComponent<Renderer>().material.color = Color.black;
+                    else if (coll[0].gameObject.layer == LayerMask.NameToLayer("LargeRoom"))
+                        tile.gameObject.GetComponent<Renderer>().material.color = Color.grey;
 
-                        tile.GetComponent<Tile>().SetData(w, h, coll[0].gameObject.GetComponent<Room>().GetRoomID());
+                    tile.GetComponent<Tile>().SetData(w, h, coll[0].gameObject.GetComponent<Room>().GetRoomID());
 
-                        tileMap[w, h] = tile;
+                    tileMap[w, h] = tile;
 
-                        tile.transform.localScale = Vector3.one;
-                    }
+                    tile.transform.localScale = Vector3.one;
+
+                    tile.transform.SetParent(tileContainer.transform);
+                }
+
+                else
+                {
+                    var tile = Instantiate(tilePrefab, spawnPos, Quaternion.identity);
+
+                    tile.GetComponent<Tile>().SetData(w, h, -1);
+
+                    tile.gameObject.GetComponent<Renderer>().material.color = Color.black;
+
+                    tileMap[w, h] = tile;
+
+                    tile.transform.localScale = Vector3.one;
+
+                    tile.transform.SetParent(tileContainer.transform);
                 }
 
                 spawnPos.x += tileSize;
@@ -175,6 +191,6 @@ public class TileGeneration : MonoBehaviour
             new Vector3((float)maxPosX - (float)minPosX, 0.0f,
             (float)maxPosZ - (float)minPosZ));*/
 
-        Gizmos.DrawWireCube(new Vector3((float)mapWidth / 2, 0.0f, (float)mapHeight / 2), new Vector3((float)mapWidth, 0.0f, (float)mapHeight));
+        //Gizmos.DrawWireCube(new Vector3((float)mapWidth / 2, 0.0f, (float)mapHeight / 2), new Vector3((float)mapWidth, 0.0f, (float)mapHeight));
     }
 }

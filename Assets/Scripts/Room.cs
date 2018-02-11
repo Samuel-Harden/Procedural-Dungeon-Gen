@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class Room : MonoBehaviour
 {
@@ -16,11 +17,13 @@ public class Room : MonoBehaviour
     float maxForce = 0.5f;
     bool overlapping;
     bool connectedToMain;
+    bool connectionCheckComplete;
+    bool generateTile;
 
     int roomID;
     int roomType;
 
-    List<Room> connectedRoom;
+    List<Room> connectedRooms;
 
     public void Initialise(int _roomWidth, int _roomHeight, Vector3 _roomPos, int _roomType, int _roomID)
     {
@@ -31,8 +34,9 @@ public class Room : MonoBehaviour
 
         overlapping = true;
         connectedToMain = false;
+        connectionCheckComplete = false;
 
-        connectedRoom = new List<Room>();
+        connectedRooms = new List<Room>();
     }
 
 
@@ -103,7 +107,7 @@ public class Room : MonoBehaviour
     public void BorderCheck(Room _room)
     {
         // If im already connected to this room, return
-        foreach(Room room in connectedRoom)
+        foreach(Room room in connectedRooms)
         {
             if(_room.GetRoomID() == room.GetRoomID())
             {
@@ -125,14 +129,31 @@ public class Room : MonoBehaviour
             (roomBoundsPoint.z) <= (_room.GetRoomBoundsPoint().z
                 + _room.GetRoomHeight()))
         {
-            connectedRoom.Add(_room);
+            // Connect Rooms
+            connectedRooms.Add(_room);
+            _room.connectedRooms.Add(this);
+        }
+    }
 
-            if(_room.ConnectedToMain())
+
+    public void CheckConnectionToMain(int _ignorePrev)
+    {
+        if(!connectionCheckComplete)
+        {
+            connectionCheckComplete = true;
+            connectedToMain = true;
+
+            // Connect to main, call other connected room
+            // Excluding previous
+            foreach (Room room in connectedRooms)
             {
-                connectedToMain = true;
+                // Ignore previous
+                if(room.GetRoomID() != _ignorePrev)
+                {
+                    room.ConnectedToMain();
+                    room.CheckConnectionToMain(room.GetRoomID());
+                }
             }
-
-            _room.connectedRoom.Add(this);
         }
     }
 
@@ -201,6 +222,12 @@ public class Room : MonoBehaviour
     }
 
 
+    public void TidyConnected()
+    {
+        connectedRooms = connectedRooms.Distinct().ToList();
+    }
+
+
     public int GetRoomWidth()
     {
         return roomWidth;
@@ -256,14 +283,14 @@ public class Room : MonoBehaviour
 
     public void AddConnectedRoom(Room connections)
     {
-        connectedRoom.Add(connections);
+        connectedRooms.Add(connections);
     }
 
 
     public Vector3 GetConnectedRoom()
     {
-        if (connectedRoom.Count > 0)
-            return connectedRoom[0].transform.position;
+        if (connectedRooms.Count > 0)
+            return connectedRooms[0].transform.position;
 
         else
             return Vector3.zero;
@@ -280,6 +307,18 @@ public class Room : MonoBehaviour
     }
 
 
+    public void AddToTileGeneration()
+    {
+        generateTile = true;
+    }
+
+
+    public bool GenerateTile()
+    {
+        return generateTile;
+    }
+
+
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
@@ -290,9 +329,9 @@ public class Room : MonoBehaviour
             Gizmos.DrawWireCube(transform.position, transform.localScale);
         }
 
-        if (connectedRoom != null)
+        if (connectedRooms != null)
         {
-            foreach (Room room in connectedRoom)
+            foreach (Room room in connectedRooms)
             {
                 Gizmos.color = Color.white;
                 Gizmos.DrawLine(transform.position, room.transform.position);
