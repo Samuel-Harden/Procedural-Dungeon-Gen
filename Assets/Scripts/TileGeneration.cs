@@ -55,7 +55,7 @@ public class TileGeneration : MonoBehaviour
 
         Vector3 spawnPos = new Vector3((float)tileSize / 2, 0.0f, (float)tileSize / 2);
 
-        Debug.Log(checkPos);
+        //Debug.Log(checkPos);
 
         for (int h = 0; h < mapHeight; h++)
         {

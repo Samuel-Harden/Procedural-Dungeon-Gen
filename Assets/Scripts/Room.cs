@@ -129,7 +129,7 @@ public class Room : MonoBehaviour
             (roomBoundsPoint.z) <= (_room.GetRoomBoundsPoint().z
                 + _room.GetRoomHeight()))
         {
-            // Connect Rooms
+            // Connect Rooms  // prob why I have to clear Duplicates!!!
             connectedRooms.Add(_room);
             _room.connectedRooms.Add(this);
         }

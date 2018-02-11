@@ -77,6 +77,15 @@ public class PathGen : MonoBehaviour
 
         // pass in first room
         ConnectNextRoom(connectedRooms[0]);
+
+        // Add rooms ready for tile generation
+        foreach (Room room in connectedRooms)
+        {
+            room.AddToTileGeneration();
+        }
+
+        // Clear out any duplicates
+        ClearDuplicates();
     }
 
 
@@ -133,17 +142,12 @@ public class PathGen : MonoBehaviour
 
         if (unConnectedRooms.Count > 0)
             ConnectNextRoom(connectedRooms[roomNo]);
-
-        // Add room ready for tile generation
-        foreach(Room room in connectedRooms)
-        {
-            room.AddToTileGeneration();
-        }
     }
 
 
     private void ClearDuplicates()
     {
+        Debug.Log("Cheese");
         foreach (Room room in connectedRooms)
         {
             room.TidyConnected();
