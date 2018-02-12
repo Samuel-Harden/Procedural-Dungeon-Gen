@@ -88,14 +88,14 @@ public class Room : MonoBehaviour
                 > (_rooms[i].GetRoomBoundsPoint().x) &&
                 // (A.X) < (B.X + B.Width) &&
                 (roomBoundsPoint.x) < (_rooms[i].GetRoomBoundsPoint().x
-                    + _rooms[i].GetRoomWidth()) &&
+                    + _rooms[i].GetWidth()) &&
 
                 // (A.Y + A.Height) > (B.Y) &&
                 (roomBoundsPoint.z + roomHeight)
                 > (_rooms[i].GetRoomBoundsPoint().z) &&
                 // (A.Y) < (B.Y + B.Height))
                 (roomBoundsPoint.z) < (_rooms[i].GetRoomBoundsPoint().z
-                    + _rooms[i].GetRoomHeight()))
+                    + _rooms[i].GetHeight()))
             {
                 overlappingRooms.Add(_rooms[i]);
             }
@@ -120,14 +120,14 @@ public class Room : MonoBehaviour
                 >= (_room.GetRoomBoundsPoint().x) &&
             // (A.X) <= (B.X + B.Width) &&
             (roomBoundsPoint.x) <= (_room.GetRoomBoundsPoint().x
-                + _room.GetRoomWidth()) &&
+                + _room.GetWidth()) &&
 
             // (A.Y + A.Height) >= (B.Y) &&
             (roomBoundsPoint.z + roomHeight)
                 >= (_room.GetRoomBoundsPoint().z) &&
             // (A.Y) <= (B.Y + B.Height))
             (roomBoundsPoint.z) <= (_room.GetRoomBoundsPoint().z
-                + _room.GetRoomHeight()))
+                + _room.GetHeight()))
         {
             // Connect Rooms  // prob why I have to clear Duplicates!!!
             connectedRooms.Add(_room);
@@ -228,12 +228,13 @@ public class Room : MonoBehaviour
     }
 
 
-    public int GetRoomWidth()
+    public int GetWidth()
     {
         return roomWidth;
     }
 
-    public int GetRoomHeight()
+
+    public int GetHeight()
     {
         return roomHeight;
     }
@@ -326,6 +327,12 @@ public class Room : MonoBehaviour
         if(roomType != 0)
         {
             Gizmos.color = Color.blue;
+            Gizmos.DrawWireCube(transform.position, transform.localScale);
+        }
+
+        if (roomType == 0)
+        {
+            Gizmos.color = Color.black;
             Gizmos.DrawWireCube(transform.position, transform.localScale);
         }
 

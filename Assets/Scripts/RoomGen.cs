@@ -43,8 +43,6 @@ public class RoomGen : MonoBehaviour
 
         Color color = Color.white;
 
-        string layer = "SmallRoom";
-
         for (int i = 0; i < roomCount; i++)
         {
 
@@ -72,21 +70,17 @@ public class RoomGen : MonoBehaviour
 
             newRoom.GetComponent<Renderer>().material.color = color;
 
-            newRoom.layer = LayerMask.NameToLayer(layer);
-
 
             if (i == noSmallRooms)
             {
                 counter++;
                 color = Color.grey;
-                layer = "MediumRoom";
             }
 
             else if (i == noSmallRooms + noMediumRooms)
             {
                 counter++;
                 color = Color.black;
-                layer = "LargeRoom";
             }
         }
     }

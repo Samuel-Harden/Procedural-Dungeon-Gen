@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class TileGeneration : MonoBehaviour
 {
-    [SerializeField] LayerMask checkLayers;
-
     [SerializeField] GameObject tileContainer;
 
     [SerializeField] GameObject tilePrefab;
@@ -25,10 +23,6 @@ public class TileGeneration : MonoBehaviour
 
     public void Initialize(List<Room> _rooms, Vector3 _dungeonCentre)
     {
-        // Checklist
-        // 1) Get Max min and max Pos of dungeon
-        // 2) Generate a tilebased map
-
         // Set initial Min & max to == dungeonCentre
         minPosX = (int)_dungeonCentre.x;
         maxPosX = (int)_dungeonCentre.x;
@@ -38,77 +32,100 @@ public class TileGeneration : MonoBehaviour
 
         GetDungeonBounds(_rooms);
 
-        GenerateTileMap();
+        GenerateTileMap(_rooms);
 
         //CleanUpRooms(_rooms);
     }
 
 
-    private void GenerateTileMap()
+    private void GenerateTileMap(List<Room> _rooms)
     {
+        int tileCount = 0;
         mapWidth = maxPosX - minPosX / tileSize;
         mapHeight = maxPosZ - minPosZ / tileSize;
 
-        tileMap = new GameObject[mapWidth, mapHeight];
+        mapWidth += 2;
+        mapHeight += 2;
 
-        Vector3 checkPos = new Vector3(minPosX + (float)tileSize / 2, 0.0f, minPosZ + (float)tileSize / 2);
+        tileMap = new GameObject[mapHeight, mapWidth];
 
-        Vector3 spawnPos = new Vector3((float)tileSize / 2, 0.0f, (float)tileSize / 2);
+        // Add each room pos to tile grid
+        foreach(Room room in _rooms)
+        {
+            // Set Start point
+            int posX = (int)room.GetRoomBoundsPoint().x + 1;// + tileSize / 2;
+            int posZ = (int)room.GetRoomBoundsPoint().z + 1;// + tileSize / 2;
 
-        //Debug.Log(checkPos);
+            int spawnPosX = posX - minPosX;
+            int spawnPosZ = posZ - minPosZ;
+
+
+            Color roomCol = Color.green;
+
+            for (int h = 0; h < room.GetHeight(); h++)
+            {
+                for (int w = 0; w < room.GetWidth(); w++)
+                {
+                    // Do we want to keep this room? (if its a small room?)
+                    if(room.GenerateTile())
+                    {
+
+                        var tile = Instantiate(tilePrefab, new Vector3(spawnPosX, 0, spawnPosZ), Quaternion.identity);
+
+                        if (room.GetRoomType() == 0)
+                            roomCol = Color.white;
+
+                        if (room.GetRoomType() > 0)
+                            roomCol = Color.grey;
+
+                        tile.GetComponent<Tile>().SetData(posX, posZ, room.GetRoomID());
+
+                        tile.GetComponent<Renderer>().material.color = roomCol;
+
+                        tileMap[posZ - minPosZ, posX - minPosX] = tile;
+
+                        tile.transform.SetParent(tileContainer.transform);
+
+                        posX += tileSize;
+
+                        spawnPosX = posX - minPosX;
+
+                        tileCount++;
+                    }
+                }
+
+                posX = (int)room.GetRoomBoundsPoint().x + 1;// + tileSize / 2;
+                spawnPosX = posX - minPosX;
+                posZ += tileSize;
+                spawnPosZ = posZ - minPosZ;
+            }
+        }
 
         for (int h = 0; h < mapHeight; h++)
         {
             for (int w = 0; w < mapWidth; w++)
             {
-                Collider[] coll = (Physics.OverlapSphere(checkPos, ((float)tileSize / 3), checkLayers));
-
-                if (coll.Length == 1 && coll[0].gameObject.GetComponent<Room>().GenerateTile())
+                // If tile is not a room create empty tile
+                if(tileMap[h,w] == null)
                 {
-                    var tile = Instantiate(tilePrefab, spawnPos, Quaternion.identity);
-
-                    if (coll[0].gameObject.layer == LayerMask.NameToLayer("MediumRoom"))
-                        tile.gameObject.GetComponent<Renderer>().material.color = Color.grey;
-
-                    else if (coll[0].gameObject.layer == LayerMask.NameToLayer("LargeRoom"))
-                        tile.gameObject.GetComponent<Renderer>().material.color = Color.grey;
-
-                    tile.GetComponent<Tile>().SetData(w, h, coll[0].gameObject.GetComponent<Room>().GetRoomID());
-
-                    tileMap[w, h] = tile;
-
-                    tile.transform.localScale = Vector3.one;
-
-                    tile.transform.SetParent(tileContainer.transform);
-                }
-
-                else
-                {
-                    var tile = Instantiate(tilePrefab, spawnPos, Quaternion.identity);
+                    var tile = Instantiate(tilePrefab, new Vector3(w, 0 , h), Quaternion.identity);
 
                     tile.GetComponent<Tile>().SetData(w, h, -1);
 
                     tile.gameObject.GetComponent<Renderer>().material.color = Color.black;
 
-                    tileMap[w, h] = tile;
+                    tileMap[h, w] = tile;
 
-                    tile.transform.localScale = Vector3.one;
+                    //tile.transform.localScale = Vector3.one;
 
                     tile.transform.SetParent(tileContainer.transform);
+
+                    tileCount++;
                 }
-
-                spawnPos.x += tileSize;
-                checkPos.x += tileSize;
-
-                Debug.Log(checkPos);
             }
-
-            spawnPos.x = (float)tileSize / 2;
-            spawnPos.z += tileSize;
-
-            checkPos.x = minPosX + (float)tileSize / 2;
-            checkPos.z += tileSize;
         }
+
+        Debug.Log(tileCount);
     }
 
 
@@ -148,7 +165,7 @@ public class TileGeneration : MonoBehaviour
         // Find highest X position
         foreach (Room room in _rooms)
         {
-            int pos = (int)room.GetRoomBoundsPoint().x + (int)room.GetRoomWidth();
+            int pos = (int)room.GetRoomBoundsPoint().x + (int)room.GetWidth();
 
             if (pos > maxPosX)
                 maxPosX = pos;
@@ -174,7 +191,7 @@ public class TileGeneration : MonoBehaviour
         // Find highest Z position
         foreach (Room room in _rooms)
         {
-            int pos = (int)room.GetRoomBoundsPoint().z + (int)room.GetRoomHeight();
+            int pos = (int)room.GetRoomBoundsPoint().z + (int)room.GetHeight();
 
             if (pos > maxPosZ)
                 maxPosZ = pos;

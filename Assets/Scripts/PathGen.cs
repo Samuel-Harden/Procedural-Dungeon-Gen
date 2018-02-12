@@ -147,7 +147,6 @@ public class PathGen : MonoBehaviour
 
     private void ClearDuplicates()
     {
-        Debug.Log("Cheese");
         foreach (Room room in connectedRooms)
         {
             room.TidyConnected();
