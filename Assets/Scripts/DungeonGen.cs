@@ -20,40 +20,31 @@ public class DungeonGen : MonoBehaviour
     private int maxDungeonRadius = 100;
 
     private RoomGen roomGen;
+
     private List<Vector3> positions;
     private List<Room> rooms;
 
     private bool setupComplete;
 
     private TileGeneration tileGenerator;
-    //private Triangulation triangulate;
     private PathGen pathGen;
 
-    private List<Vector3> roomPos;
-    private List<Vector3> roomConnections;
 
     private void Start()
     {
-        roomGen = gameObject.GetComponent<RoomGen>();
+        roomGen       = gameObject.GetComponent<RoomGen>();
         tileGenerator = gameObject.GetComponent<TileGeneration>();
-        //triangulate = gameObject.GetComponent<Triangulation>();
-        pathGen = gameObject.GetComponent<PathGen>();
+        pathGen       = gameObject.GetComponent<PathGen>();
 
         positions = new List<Vector3>();
-        rooms = new List<Room>();
-
-        roomPos = new List<Vector3>();
-        roomConnections = new List<Vector3>();
+        rooms     = new List<Room>();
 
         CheckSetDungeonSize();
 
-        roomGen.GenerateRooms(rooms, roomCount, dungeonRadius, randNoRooms);
+        roomGen.GenerateRooms(rooms, roomCount,
+            dungeonRadius, randNoRooms);
 
-        if (smallRoomPercentage > 100)
-            smallRoomPercentage = 100;
-
-        if (smallRoomPercentage < 0)
-            smallRoomPercentage = 0;
+        LimitSmallRoomCount();
     }
 
 
@@ -76,8 +67,6 @@ public class DungeonGen : MonoBehaviour
 
             if (!overlap)
             {
-                //test.GenerateLayout(rooms);
-
                 foreach(Room room in rooms)
                 {
                     room.SetPos();
@@ -99,7 +88,7 @@ public class DungeonGen : MonoBehaviour
                     pathGen.Initialize(rooms, smallRoomPercentage);
 
                     if(generateTiles)
-                    tileGenerator.Initialize(pathGen.GetConnectedRooms(), dungeonCentre);
+                        tileGenerator.Initialize(pathGen.GetConnectedRooms(), dungeonCentre);
 
                     setupComplete = true;
                 }
@@ -114,6 +103,16 @@ public class DungeonGen : MonoBehaviour
         {
             room.transform.SetParent(roomContainer);
         }
+    }
+
+
+    private void LimitSmallRoomCount()
+    {
+        if (smallRoomPercentage > 100)
+            smallRoomPercentage = 100;
+
+        if (smallRoomPercentage < 0)
+            smallRoomPercentage = 0;
     }
 
 

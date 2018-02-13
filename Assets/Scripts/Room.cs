@@ -13,17 +13,17 @@ public class Room : MonoBehaviour
     Vector3 velocity;
     Vector3 acceleration;
 
-    float maxSpeed = 0.5f;
-    float maxForce = 0.5f;
-    bool overlapping;
-    bool connectedToMain;
-    bool connectionCheckComplete;
-    bool generateTile;
+    private float maxSpeed = 0.5f;
+    private float maxForce = 0.5f;
+    private bool overlapping;
+    private bool connectedToMain;
+    private bool connectionCheckComplete;
+    private bool generateTile;
 
-    int roomID;
-    int roomType;
+    private int roomID;
+    private int roomType;
 
-    List<Room> connectedRooms;
+    private List<Room> connectedRooms;
 
     public void Initialise(int _roomWidth, int _roomHeight, Vector3 _roomPos, int _roomType, int _roomID)
     {
@@ -190,32 +190,9 @@ public class Room : MonoBehaviour
             //steer.setMag (maxSpeed);
             steer = Vector3.ClampMagnitude(steer, maxSpeed);
 
-            // implement Reynolds: steering = desired - velocity
             steer.Normalize();
             steer = (steer * maxSpeed);
             steer = (steer - velocity);
-
-            //steer = Vector3.ClampMagnitude(steer, maxForce);
-        }
-
-        if (steer.x > 0.0f)
-        {
-            steer = new Vector3(0.5f, 0.0f, steer.z);
-        }
-
-        if (steer.z > 0.0f)
-        {
-            steer = new Vector3(steer.x, 0.0f, 0.5f);
-        }
-
-        if (steer.x < 0.0f)
-        {
-            steer = new Vector3(-0.5f, 0.0f, steer.z);
-        }
-
-        if (steer.z < 0.0f)
-        {
-            steer = new Vector3(steer.x, 0.0f, -0.5f);
         }
 
         return steer;
@@ -240,6 +217,9 @@ public class Room : MonoBehaviour
     }
 
 
+    // This is the Bottom Left Pos of the room
+    // pos - (half room width and height)
+    // needed for bounds check...
     public Vector3 GetRoomBoundsPoint()
     {
         return roomBoundsPoint;
@@ -288,16 +268,6 @@ public class Room : MonoBehaviour
     }
 
 
-    public Vector3 GetConnectedRoom()
-    {
-        if (connectedRooms.Count > 0)
-            return connectedRooms[0].transform.position;
-
-        else
-            return Vector3.zero;
-    }
-
-
     public void SetPos()
     {
         transform.position = new Vector3(Mathf.RoundToInt(transform.position.x),
@@ -308,6 +278,8 @@ public class Room : MonoBehaviour
     }
 
 
+    // For small Rooms, should this one be kept
+    // for final dungeon build?
     public void AddToTileGeneration()
     {
         generateTile = true;

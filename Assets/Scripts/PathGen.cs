@@ -5,13 +5,12 @@ using System.Linq;
 
 public class PathGen : MonoBehaviour
 {
-    int roomNo = 0;
+    private int roomNo = 0;
+    private int smallRoomPercentage;
 
     List<Room> roomsToCheck;
     List<Room> connectedRooms;
     List<Room> unConnectedRooms;
-
-    int smallRoomPercentage;
 
 
     public void Initialize(List<Room> _rooms, int _smallRoomPercentage)
@@ -112,15 +111,19 @@ public class PathGen : MonoBehaviour
     private void ConnectNextRoom(Room _room)
     { 
         // sort by how close they are to the next conected room 
-        unConnectedRooms = unConnectedRooms.OrderBy(room => Vector3.Distance(room.transform.position, _room.transform.position)).ToList();
+        unConnectedRooms = unConnectedRooms.OrderBy(room =>
+        Vector3.Distance(room.transform.position, _room.transform.position)).ToList();
 
-        float dist = Vector3.Distance(_room.transform.position, unConnectedRooms[0].transform.position);
+        float dist = Vector3.Distance(_room.transform.position,
+            unConnectedRooms[0].transform.position);
         
         for (int i = 0; i < connectedRooms.Count; i++)
         {
-            if (Vector3.Distance(connectedRooms[i].transform.position, unConnectedRooms[0].transform.position) < dist)
+            if (Vector3.Distance(connectedRooms[i].transform.position,
+                unConnectedRooms[0].transform.position) < dist)
             {
-                dist = Vector3.Distance(unConnectedRooms[0].transform.position, connectedRooms[i].transform.position);
+                dist = Vector3.Distance(unConnectedRooms[0].transform.position,
+                    connectedRooms[i].transform.position);
                 roomNo = i;
             }
         }

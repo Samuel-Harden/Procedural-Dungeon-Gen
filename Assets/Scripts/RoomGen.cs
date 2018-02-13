@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class RoomGen : MonoBehaviour
 {
+    [SerializeField] GameObject room;
+
     private int minRoomCount = 10;
     private int maxRoomCount = 1000;
 
@@ -25,7 +27,6 @@ public class RoomGen : MonoBehaviour
     private int noSmallRooms;
     private int currentSmall = 0;
 
-    [SerializeField] GameObject room;
 
     public void GenerateRooms(List<Room> _rooms, int _roomCount, int _dungeonRadius,
         bool _randNoRooms)
@@ -45,7 +46,6 @@ public class RoomGen : MonoBehaviour
 
         for (int i = 0; i < roomCount; i++)
         {
-
             float angle = Random.Range(0, 360);
 
             Quaternion direction = Quaternion.AngleAxis(angle, Vector3.up);

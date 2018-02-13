@@ -10,20 +10,18 @@ public class TileGeneration : MonoBehaviour
 
     private GameObject[,] tileMap;
 
-    int minPosX;
-    int maxPosX;
-    int minPosZ;
-    int maxPosZ;
+    private int minPosX;
+    private int maxPosX;
+    private int minPosZ;
+    private int maxPosZ;
 
-    int tileSize = 1;
+    private int tileSize = 1;
 
-    int mapWidth;
-    int mapHeight;
-
+    private int mapWidth;
+    private int mapHeight;
 
     public void Initialize(List<Room> _rooms, Vector3 _dungeonCentre)
     {
-        // Set initial Min & max to == dungeonCentre
         minPosX = (int)_dungeonCentre.x;
         maxPosX = (int)_dungeonCentre.x;
 
@@ -40,7 +38,6 @@ public class TileGeneration : MonoBehaviour
 
     private void GenerateTileMap(List<Room> _rooms)
     {
-        int tileCount = 0;
         mapWidth = maxPosX - minPosX / tileSize;
         mapHeight = maxPosZ - minPosZ / tileSize;
 
@@ -49,19 +46,19 @@ public class TileGeneration : MonoBehaviour
 
         tileMap = new GameObject[mapHeight, mapWidth];
 
+        Color roomCol = Color.white;
+
         // Add each room pos to tile grid
-        foreach(Room room in _rooms)
+        foreach (Room room in _rooms)
         {
             // Set Start point
-            int posX = (int)room.GetRoomBoundsPoint().x + 1;// + tileSize / 2;
-            int posZ = (int)room.GetRoomBoundsPoint().z + 1;// + tileSize / 2;
+            int posX = (int)room.GetRoomBoundsPoint().x + 1;
+            int posZ = (int)room.GetRoomBoundsPoint().z + 1;
 
             int spawnPosX = posX - minPosX;
             int spawnPosZ = posZ - minPosZ;
 
-
-            Color roomCol = Color.green;
-
+            // First, add in all rooms to tile map
             for (int h = 0; h < room.GetHeight(); h++)
             {
                 for (int w = 0; w < room.GetWidth(); w++)
@@ -69,38 +66,27 @@ public class TileGeneration : MonoBehaviour
                     // Do we want to keep this room? (if its a small room?)
                     if(room.GenerateTile())
                     {
-
-                        var tile = Instantiate(tilePrefab, new Vector3(spawnPosX, 0, spawnPosZ), Quaternion.identity);
-
-                        if (room.GetRoomType() == 0)
-                            roomCol = Color.white;
-
                         if (room.GetRoomType() > 0)
                             roomCol = Color.grey;
 
-                        tile.GetComponent<Tile>().SetData(posX, posZ, room.GetRoomID());
-
-                        tile.GetComponent<Renderer>().material.color = roomCol;
-
-                        tileMap[posZ - minPosZ, posX - minPosX] = tile;
-
-                        tile.transform.SetParent(tileContainer.transform);
+                        tileMap[posZ - minPosZ, posX - minPosX] = 
+                            CreateTile(spawnPosX, spawnPosZ, room.GetRoomID(),
+                            posX, posZ, roomCol);
 
                         posX += tileSize;
 
                         spawnPosX = posX - minPosX;
-
-                        tileCount++;
                     }
                 }
 
-                posX = (int)room.GetRoomBoundsPoint().x + 1;// + tileSize / 2;
+                posX = (int)room.GetRoomBoundsPoint().x + 1;
                 spawnPosX = posX - minPosX;
                 posZ += tileSize;
                 spawnPosZ = posZ - minPosZ;
             }
         }
 
+        // now loop through any empty spaces, add in blanks (Walls)
         for (int h = 0; h < mapHeight; h++)
         {
             for (int w = 0; w < mapWidth; w++)
@@ -108,24 +94,30 @@ public class TileGeneration : MonoBehaviour
                 // If tile is not a room create empty tile
                 if(tileMap[h,w] == null)
                 {
-                    var tile = Instantiate(tilePrefab, new Vector3(w, 0 , h), Quaternion.identity);
+                    roomCol = Color.black;
 
-                    tile.GetComponent<Tile>().SetData(w, h, -1);
-
-                    tile.gameObject.GetComponent<Renderer>().material.color = Color.black;
-
-                    tileMap[h, w] = tile;
-
-                    //tile.transform.localScale = Vector3.one;
-
-                    tile.transform.SetParent(tileContainer.transform);
-
-                    tileCount++;
+                    tileMap[h, w] = CreateTile(w, h, -1, w, h, roomCol);
                 }
             }
         }
+    }
 
-        Debug.Log(tileCount);
+
+    private GameObject CreateTile(int _spawnPosX, int _spawnPosZ, int _roomID,
+        int _posX, int _posZ, Color _roomCol)
+    {
+        Color roomCol = _roomCol;
+
+        var tile = Instantiate(tilePrefab, new Vector3(_spawnPosX, 0, _spawnPosZ),
+            Quaternion.identity);
+
+        tile.GetComponent<Tile>().SetData(_posX, _posZ, _roomID);
+
+        tile.GetComponent<Renderer>().material.color = roomCol;
+
+        tile.transform.SetParent(tileContainer.transform);
+
+        return tile;
     }
 
 
@@ -208,6 +200,7 @@ public class TileGeneration : MonoBehaviour
             new Vector3((float)maxPosX - (float)minPosX, 0.0f,
             (float)maxPosZ - (float)minPosZ));*/
 
-        //Gizmos.DrawWireCube(new Vector3((float)mapWidth / 2, 0.0f, (float)mapHeight / 2), new Vector3((float)mapWidth, 0.0f, (float)mapHeight));
+        //Gizmos.DrawWireCube(new Vector3((float)mapWidth / 2, 0.0f,
+        //(float)mapHeight / 2), new Vector3((float)mapWidth, 0.0f, (float)mapHeight));
     }
 }
