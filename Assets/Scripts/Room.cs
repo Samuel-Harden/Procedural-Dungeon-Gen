@@ -268,6 +268,31 @@ public class Room : MonoBehaviour
     }
 
 
+    public List<Room> GetConnectedRooms()
+    {
+        return connectedRooms;
+    }
+
+
+    public Room GetConnectedRoom(int _index)
+    {
+        return connectedRooms[_index];
+    }
+
+
+    public void RemoveDuplicateConnection(Vector3 _roomPos)
+    {
+        foreach(Room room in connectedRooms)
+        {
+            if(_roomPos == room.transform.position)
+            {
+                connectedRooms.Remove(room);
+                return;
+            }
+        }
+    }
+
+
     public void SetPos()
     {
         transform.position = new Vector3(Mathf.RoundToInt(transform.position.x),

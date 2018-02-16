@@ -10,6 +10,7 @@ public class DungeonGen : MonoBehaviour
     [SerializeField] bool randNoRooms;
     [SerializeField] bool randDungeonSize;
     [SerializeField] bool generateTiles;
+    [SerializeField] bool EnableDoubleConnections;
 
     [Header("% of Small Rooms (Cannot exceed 100%)")]
     [SerializeField] int smallRoomPercentage;
@@ -88,7 +89,8 @@ public class DungeonGen : MonoBehaviour
                     pathGen.Initialize(rooms, smallRoomPercentage);
 
                     if(generateTiles)
-                        tileGenerator.Initialize(pathGen.GetConnectedRooms(), dungeonCentre);
+                        tileGenerator.Initialize(pathGen.GetConnectedRooms(), dungeonCentre,
+                            EnableDoubleConnections);
 
                     setupComplete = true;
                 }

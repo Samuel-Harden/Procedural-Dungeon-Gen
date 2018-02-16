@@ -9,8 +9,9 @@ public class Tile : MonoBehaviour
     private int roomID;
     private int roomValue;
 
-    public int gCost;
-    public int hCost;
+    public int gCost; // Cost to move to pos (Some tiles could cost more to move to for example)
+    public int hCost; // How far node is away from target pos
+    // F cost is both combined
 
     private bool walkable;
 

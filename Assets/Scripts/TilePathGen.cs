@@ -5,10 +5,6 @@ using UnityEngine;
 public class TilePathGen : MonoBehaviour
 {
     TileGen tileGen;
-    // Pass this all connections we need to make
-
-    public Transform seeker;
-    public Transform target;
 
 
     private void Awake()
@@ -17,13 +13,8 @@ public class TilePathGen : MonoBehaviour
     }
 
 
-    private void Update()
-    {
-        FindPath(seeker.position, target.position);
-    }
-
-
-    void FindPath(Vector3 _startPos, Vector3 _targetPos)
+    // A* Pathfinding
+    public void FindPath(Vector3 _startPos, Vector3 _targetPos)
     {
         Tile startTile  = tileGen.GetTileAtWorldPos(_startPos);
 
@@ -60,7 +51,8 @@ public class TilePathGen : MonoBehaviour
                 if (!neighbour.GetWalkable() || closedSet.Contains(neighbour))
                         continue;
 
-                int newMovementCostToNeighbour = currentTile.gCost + GetDistance(currentTile, neighbour);
+                int newMovementCostToNeighbour = currentTile.gCost +
+                    GetDistance(currentTile, neighbour);
 
                 if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
                 {
@@ -76,6 +68,7 @@ public class TilePathGen : MonoBehaviour
     }
 
 
+    // Now we have the route, retrace our steps
     private void RetracePath(Tile _startTile, Tile _endTile)
     {
         List<Tile> path = new List<Tile>();
@@ -90,7 +83,7 @@ public class TilePathGen : MonoBehaviour
 
         path.Reverse();
 
-        tileGen.path = path;
+        tileGen.GenerateCorridor(path);
     }
 
 
@@ -101,9 +94,9 @@ public class TilePathGen : MonoBehaviour
 
         if(distX > distZ)
         {
-            return 14 * distZ + 10 * (distX-distZ);
+            return distZ + 10 * (distX-distZ);
         }
 
-        return 14 * distX + 10 * (distZ - distX);
+        return distX + 10 * (distZ - distX);
     }
 }

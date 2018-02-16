@@ -8,6 +8,8 @@ public class TileGen : MonoBehaviour
 
     [SerializeField] GameObject tilePrefab;
 
+    private TilePathGen tilePathGen;
+
     private Tile[,] tileMap;
 
     private int minPosX;
@@ -20,13 +22,19 @@ public class TileGen : MonoBehaviour
     private int mapWidth;
     private int mapHeight;
 
-    public void Initialize(List<Room> _rooms, Vector3 _dungeonCentre)
+    private bool enableDoubleConnection;
+
+    public void Initialize(List<Room> _rooms, Vector3 _dungeonCentre, bool _connection)
     {
+        tilePathGen = GetComponent<TilePathGen>();
+
         minPosX = (int)_dungeonCentre.x;
         maxPosX = (int)_dungeonCentre.x;
 
         minPosZ = (int)_dungeonCentre.z;
         maxPosZ = (int)_dungeonCentre.z;
+
+        enableDoubleConnection = _connection;
 
         GetDungeonBounds(_rooms);
 
@@ -66,8 +74,7 @@ public class TileGen : MonoBehaviour
                     // Do we want to keep this room? (if its a small room?)
                     if(room.GenerateTile())
                     {
-                        if (room.GetRoomType() > 0)
-                            roomCol = Color.grey;
+                        roomCol = Color.grey;
 
                         tileMap[posZ - minPosZ, posX - minPosX] = 
                             CreateTile(spawnPosX, spawnPosZ, room.GetRoomID(), roomCol, true);
@@ -100,7 +107,9 @@ public class TileGen : MonoBehaviour
             }
         }
 
-        Debug.Log(tileMap.Length);
+        GenerateCorridorData(_rooms);
+
+        //Debug.Log(tileMap.Length);
     }
 
 
@@ -118,6 +127,38 @@ public class TileGen : MonoBehaviour
         tile.transform.SetParent(tileContainer.transform);
 
         return tile.GetComponent<Tile>();
+    }
+
+
+    private void GenerateCorridorData(List<Room> _rooms)
+    {
+        //List<Vector3> startPos = new List<Vector3>();
+        //List<Vector3> endPos = new List<Vector3>();
+
+        foreach(Room room in _rooms)
+        {
+            for(int i = room.GetConnectedRooms().Count - 1; i >= 0; i--)
+            {
+                tilePathGen.FindPath(room.transform.position, room.GetConnectedRoom(i).transform.position);
+
+                if(!enableDoubleConnection)
+                room.GetConnectedRoom(i).RemoveDuplicateConnection(room.transform.position);
+            }
+        }
+    }
+
+
+    // sets a tile to be of type Corridor (Currently only changing colour but will change data in later update)
+    public void GenerateCorridor(List<Tile> _path)
+    {
+        foreach(Tile tile in _path)
+        {
+            // if this tile is not a room or corridor
+            if(tile.GetRoomID() == -1)
+            {
+                tile.GetComponent<Renderer>().material.color = Color.white;
+            }
+        }
     }
 
 
@@ -193,13 +234,14 @@ public class TileGen : MonoBehaviour
 
     public Tile GetTileAtWorldPos(Vector3 _worldPos)
     {
-        int x = Mathf.RoundToInt(_worldPos.x);
-        int z = Mathf.RoundToInt(_worldPos.z);
+        int x = Mathf.RoundToInt(_worldPos.x) - minPosX;
+        int z = Mathf.RoundToInt(_worldPos.z) - minPosZ;
 
         return tileMap[z, x];
     }
 
 
+    // Returns a list of neighbours tiles
     public List<Tile> GetNeighbours(Tile _tile)
     {
         List<Tile> neighbours = new List<Tile>();
@@ -236,8 +278,6 @@ public class TileGen : MonoBehaviour
     }
 
 
-    public List<Tile> path;
-
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
@@ -250,7 +290,7 @@ public class TileGen : MonoBehaviour
         //Gizmos.DrawWireCube(new Vector3((float)mapWidth / 2, 0.0f,
         //(float)mapHeight / 2), new Vector3((float)mapWidth, 0.0f, (float)mapHeight));
 
-        if (path.Count != 0)
+        /*if (path != null)
         {
             foreach(Tile tile in tileMap)
             {
@@ -260,6 +300,6 @@ public class TileGen : MonoBehaviour
                     Gizmos.DrawCube(tile.transform.position, Vector3.one * (1 - 0.1f));
                 }
             }
-        }
+        }*/
     }
 }
