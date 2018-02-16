@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TileGeneration : MonoBehaviour
+public class TileGen : MonoBehaviour
 {
     [SerializeField] GameObject tileContainer;
 
     [SerializeField] GameObject tilePrefab;
 
-    private GameObject[,] tileMap;
+    private Tile[,] tileMap;
 
     private int minPosX;
     private int maxPosX;
@@ -44,7 +44,7 @@ public class TileGeneration : MonoBehaviour
         mapWidth += 2;
         mapHeight += 2;
 
-        tileMap = new GameObject[mapHeight, mapWidth];
+        tileMap = new Tile[mapHeight, mapWidth];
 
         Color roomCol = Color.white;
 
@@ -70,8 +70,7 @@ public class TileGeneration : MonoBehaviour
                             roomCol = Color.grey;
 
                         tileMap[posZ - minPosZ, posX - minPosX] = 
-                            CreateTile(spawnPosX, spawnPosZ, room.GetRoomID(),
-                            posX, posZ, roomCol);
+                            CreateTile(spawnPosX, spawnPosZ, room.GetRoomID(), roomCol, true);
 
                         posX += tileSize;
 
@@ -96,28 +95,29 @@ public class TileGeneration : MonoBehaviour
                 {
                     roomCol = Color.black;
 
-                    tileMap[h, w] = CreateTile(w, h, -1, w, h, roomCol);
+                    tileMap[h, w] = CreateTile(w, h, -1, roomCol, true);
                 }
             }
         }
+
+        Debug.Log(tileMap.Length);
     }
 
 
-    private GameObject CreateTile(int _spawnPosX, int _spawnPosZ, int _roomID,
-        int _posX, int _posZ, Color _roomCol)
+    private Tile CreateTile(int _posX, int _posZ, int _roomID, Color _roomCol, bool _walkable)
     {
         Color roomCol = _roomCol;
 
-        var tile = Instantiate(tilePrefab, new Vector3(_spawnPosX, 0, _spawnPosZ),
+        var tile = Instantiate(tilePrefab, new Vector3(_posX, 0, _posZ),
             Quaternion.identity);
 
-        tile.GetComponent<Tile>().SetData(_posX, _posZ, _roomID);
+        tile.GetComponent<Tile>().SetData(_posX, _posZ, _roomID, _walkable);
 
         tile.GetComponent<Renderer>().material.color = roomCol;
 
         tile.transform.SetParent(tileContainer.transform);
 
-        return tile;
+        return tile.GetComponent<Tile>();
     }
 
 
@@ -191,7 +191,54 @@ public class TileGeneration : MonoBehaviour
     }
 
 
-    private void OnDrawGizmos()
+    public Tile GetTileAtWorldPos(Vector3 _worldPos)
+    {
+        int x = Mathf.RoundToInt(_worldPos.x);
+        int z = Mathf.RoundToInt(_worldPos.z);
+
+        return tileMap[z, x];
+    }
+
+
+    public List<Tile> GetNeighbours(Tile _tile)
+    {
+        List<Tile> neighbours = new List<Tile>();
+
+        // Left
+        if (_tile.GetCol() - 1 >= 0)
+        {
+            // Add tile to the left
+            neighbours.Add(tileMap[_tile.GetRow(), _tile.GetCol() - 1]);
+        }
+
+        // Right
+        if (_tile.GetCol() + 1 < mapWidth)
+        {
+            // Add tile to the right
+            neighbours.Add(tileMap[_tile.GetRow(), _tile.GetCol() + 1]);
+        }
+
+        // Down
+        if (_tile.GetRow() - 1 >= 0)
+        {
+            // Add tile below
+            neighbours.Add(tileMap[_tile.GetRow() - 1, _tile.GetCol()]);
+        }
+
+        // Up
+        if (_tile.GetRow() + 1 < mapHeight)
+        {
+            // Add tile above
+            neighbours.Add(tileMap[_tile.GetRow() + 1, _tile.GetCol()]);
+        }
+
+        return neighbours;
+    }
+
+
+    public List<Tile> path;
+
+    void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
 
@@ -202,5 +249,17 @@ public class TileGeneration : MonoBehaviour
 
         //Gizmos.DrawWireCube(new Vector3((float)mapWidth / 2, 0.0f,
         //(float)mapHeight / 2), new Vector3((float)mapWidth, 0.0f, (float)mapHeight));
+
+        if (path.Count != 0)
+        {
+            foreach(Tile tile in tileMap)
+            {
+                if (path.Contains(tile))
+                {
+                    Gizmos.color = Color.green;
+                    Gizmos.DrawCube(tile.transform.position, Vector3.one * (1 - 0.1f));
+                }
+            }
+        }
     }
 }

@@ -26,14 +26,14 @@ public class DungeonGen : MonoBehaviour
 
     private bool setupComplete;
 
-    private TileGeneration tileGenerator;
+    private TileGen tileGenerator;
     private PathGen pathGen;
 
 
     private void Start()
     {
         roomGen       = gameObject.GetComponent<RoomGen>();
-        tileGenerator = gameObject.GetComponent<TileGeneration>();
+        tileGenerator = gameObject.GetComponent<TileGen>();
         pathGen       = gameObject.GetComponent<PathGen>();
 
         positions = new List<Vector3>();
