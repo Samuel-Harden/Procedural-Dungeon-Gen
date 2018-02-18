@@ -31,7 +31,7 @@ public class TilePathGen : MonoBehaviour
             {
                 if (openSet[i].GetFCost() < currentTile.GetFCost() ||
                     openSet[i].GetFCost() == currentTile.GetFCost() &&
-                    openSet[i].hCost < currentTile.hCost)
+                    openSet[i].GetHCost() < currentTile.GetHCost())
                 {
                     currentTile = openSet[i];
                 }
@@ -51,13 +51,13 @@ public class TilePathGen : MonoBehaviour
                 if (!neighbour.GetWalkable() || closedSet.Contains(neighbour))
                         continue;
 
-                int newMovementCostToNeighbour = currentTile.gCost +
+                int newMovementCostToNeighbour = currentTile.GetGCost() +
                     GetDistance(currentTile, neighbour);
 
-                if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
+                if (newMovementCostToNeighbour < neighbour.GetGCost() || !openSet.Contains(neighbour))
                 {
-                    neighbour.gCost = newMovementCostToNeighbour;
-                    neighbour.hCost = GetDistance(neighbour, targetTile);
+                    neighbour.SetGCost(newMovementCostToNeighbour);
+                    neighbour.SetHCost(GetDistance(neighbour, targetTile));
                     neighbour.parent = currentTile;
 
                     if (!openSet.Contains(neighbour))
@@ -83,7 +83,7 @@ public class TilePathGen : MonoBehaviour
 
         path.Reverse();
 
-        tileGen.GenerateCorridor(path);
+        tileGen.SetCorridor(path);
     }
 
 

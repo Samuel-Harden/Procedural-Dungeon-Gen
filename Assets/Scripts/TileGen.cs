@@ -7,10 +7,13 @@ public class TileGen : MonoBehaviour
     [SerializeField] GameObject tileContainer;
 
     [SerializeField] GameObject tilePrefab;
+    [SerializeField] List<Sprite> tileSprites;
 
     private TilePathGen tilePathGen;
 
     private Tile[,] tileMap;
+
+    private List<int> spritePosValue;
 
     private int minPosX;
     private int maxPosX;
@@ -24,9 +27,25 @@ public class TileGen : MonoBehaviour
 
     private bool enableDoubleConnection;
 
+    Dictionary<int, int> sprites = new Dictionary<int, int>()
+    {
+        {   2,  1 }, {   8,  2 }, {  10,  3 }, {  11,  4 }, {  16,  5 },
+        {  18,  6 }, {  22,  7 }, {  24,  8 }, {  26,  9 }, {  27,  10 },
+        {  30, 11 }, {  31, 12 }, {  64, 13 }, {  66, 14 }, {  72, 15 },
+        {  74, 16 }, {  75, 17 }, {  80, 18 }, {  82, 19 }, {  86, 20 },
+        {  88, 21 }, {  90, 22 }, {  91, 23 }, {  94, 24 }, {  95, 25 },
+        { 104, 26 }, { 106, 27 }, { 107, 28 }, { 120, 29 }, { 122, 30 },
+        { 123, 31 }, { 126, 32 }, { 127, 33 }, { 208, 34 }, { 210, 35 },
+        { 214, 36 }, { 216, 37 }, { 218, 38 }, { 219, 39 }, { 222, 40 },
+        { 223, 41 }, { 248, 42 }, { 250, 43 }, { 251, 44 }, { 254, 45 },
+        { 255, 46 }, {   0, 47 }
+    };
+
     public void Initialize(List<Room> _rooms, Vector3 _dungeonCentre, bool _connection)
     {
         tilePathGen = GetComponent<TilePathGen>();
+
+        spritePosValue = new List<int>() { 32, 64, 128, 8, 16, 1, 2, 4 };
 
         minPosX = (int)_dungeonCentre.x;
         maxPosX = (int)_dungeonCentre.x;
@@ -54,8 +73,6 @@ public class TileGen : MonoBehaviour
 
         tileMap = new Tile[mapHeight, mapWidth];
 
-        Color roomCol = Color.white;
-
         // Add each room pos to tile grid
         foreach (Room room in _rooms)
         {
@@ -72,12 +89,11 @@ public class TileGen : MonoBehaviour
                 for (int w = 0; w < room.GetWidth(); w++)
                 {
                     // Do we want to keep this room? (if its a small room?)
-                    if(room.GenerateTile())
+                    if (room.GenerateTile())
                     {
-                        roomCol = Color.grey;
 
-                        tileMap[posZ - minPosZ, posX - minPosX] = 
-                            CreateTile(spawnPosX, spawnPosZ, room.GetRoomID(), roomCol, true);
+                        tileMap[posZ - minPosZ, posX - minPosX] =
+                            CreateTile(spawnPosX, spawnPosZ, room.GetRoomID(), true);
 
                         posX += tileSize;
 
@@ -98,31 +114,31 @@ public class TileGen : MonoBehaviour
             for (int w = 0; w < mapWidth; w++)
             {
                 // If tile is not a room create empty tile
-                if(tileMap[h,w] == null)
+                if (tileMap[h, w] == null)
                 {
-                    roomCol = Color.black;
-
-                    tileMap[h, w] = CreateTile(w, h, -1, roomCol, true);
+                    tileMap[h, w] = CreateTile(w, h, -1, true);
                 }
             }
         }
 
         GenerateCorridorData(_rooms);
 
+        AssignSprites();
+
         //Debug.Log(tileMap.Length);
     }
 
 
-    private Tile CreateTile(int _posX, int _posZ, int _roomID, Color _roomCol, bool _walkable)
+    private Tile CreateTile(int _posX, int _posZ, int _roomID, bool _walkable)
     {
-        Color roomCol = _roomCol;
 
         var tile = Instantiate(tilePrefab, new Vector3(_posX, 0, _posZ),
-            Quaternion.identity);
+            tilePrefab.transform.rotation);
 
         tile.GetComponent<Tile>().SetData(_posX, _posZ, _roomID, _walkable);
 
-        tile.GetComponent<Renderer>().material.color = roomCol;
+        if (_roomID == -1)
+            tile.GetComponent<Renderer>().material.color = Color.black;
 
         tile.transform.SetParent(tileContainer.transform);
 
@@ -135,30 +151,129 @@ public class TileGen : MonoBehaviour
         //List<Vector3> startPos = new List<Vector3>();
         //List<Vector3> endPos = new List<Vector3>();
 
-        foreach(Room room in _rooms)
+        foreach (Room room in _rooms)
         {
-            for(int i = room.GetConnectedRooms().Count - 1; i >= 0; i--)
+            for (int i = room.GetConnectedRooms().Count - 1; i >= 0; i--)
             {
                 tilePathGen.FindPath(room.transform.position, room.GetConnectedRoom(i).transform.position);
 
-                if(!enableDoubleConnection)
-                room.GetConnectedRoom(i).RemoveDuplicateConnection(room.transform.position);
+                if (!enableDoubleConnection)
+                    room.GetConnectedRoom(i).RemoveDuplicateConnection(room.transform.position);
             }
         }
     }
 
 
     // sets a tile to be of type Corridor (Currently only changing colour but will change data in later update)
-    public void GenerateCorridor(List<Tile> _path)
+    public void SetCorridor(List<Tile> _path)
     {
-        foreach(Tile tile in _path)
+        foreach (Tile tile in _path)
         {
             // if this tile is not a room or corridor
-            if(tile.GetRoomID() == -1)
+            if (tile.GetRoomID() == -1)
             {
+                tile.SetRoomID(0);
                 tile.GetComponent<Renderer>().material.color = Color.white;
             }
         }
+    }
+
+
+    private void AssignSprites()
+    {
+        foreach (Tile tile in tileMap)
+        {
+            int tileType = 0;
+            int index    = 0;
+
+            bool up    = false;
+            bool down  = false;
+            bool left  = false;
+            bool right = false;
+
+            // If room is not blank (ie a room or corridor)
+            if(tile.GetRoomID() != -1)
+            {
+                //Check Up
+                if(tileMap[tile.GetRow() + 1, tile.GetCol()].GetRoomID() != -1)
+                {
+                    up = true;
+                    index += 2;
+                }
+
+                //Check Down
+                if (tileMap[tile.GetRow() - 1, tile.GetCol()].GetRoomID() != -1)
+                {
+                   down = true;
+                   index += 64;
+                }
+
+                //Check Left
+                if (tileMap[tile.GetRow(), tile.GetCol() - 1].GetRoomID() != -1)
+                {
+                    left = true;
+                    index += 8;
+                }
+
+                //Check Right
+                if (tileMap[tile.GetRow(), tile.GetCol() + 1].GetRoomID() != -1)
+                {
+                    right = true;
+                    index += 16;
+                }
+
+                // Check Up and Left
+                if(up && left)
+                {
+                    if (tileMap[tile.GetRow() + 1, tile.GetCol() - 1].GetRoomID() != -1)
+                    {
+                        index += 1;
+                    }
+                }
+
+                // Check Up and Right
+                if (up && right)
+                {
+                    if (tileMap[tile.GetRow() + 1, tile.GetCol() + 1].GetRoomID() != -1)
+                    {
+                        index += 4;
+                    }
+                }
+
+                // Check Down and Left
+                if (down && left)
+                {
+                    if (tileMap[tile.GetRow() - 1, tile.GetCol() - 1].GetRoomID() != -1)
+                    {
+                        index += 32;
+                    }
+                }
+
+                // Check Down and Right
+                if (down && right)
+                {
+                    if (tileMap[tile.GetRow() - 1, tile.GetCol() + 1].GetRoomID() != -1)
+                    {
+                        index += 128;
+                    }
+                }
+
+                //tile.SetSpriteIndex(index);
+
+                tile.SetSpriteIndex(index);
+
+                tile.GetComponent<SpriteRenderer>().sprite = tileSprites[GetLookUpValue(index)];
+
+
+            }
+        }
+    }
+
+    private int GetLookUpValue(int _value)
+    {
+        int value = 0;
+        sprites.TryGetValue(_value, out value);
+        return value;
     }
 
 
