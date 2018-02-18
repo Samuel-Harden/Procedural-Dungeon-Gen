@@ -45,8 +45,6 @@ public class TileGen : MonoBehaviour
     {
         tilePathGen = GetComponent<TilePathGen>();
 
-        spritePosValue = new List<int>() { 32, 64, 128, 8, 16, 1, 2, 4 };
-
         minPosX = (int)_dungeonCentre.x;
         maxPosX = (int)_dungeonCentre.x;
 
@@ -264,7 +262,8 @@ public class TileGen : MonoBehaviour
 
                 tile.GetComponent<SpriteRenderer>().sprite = tileSprites[GetLookUpValue(index)];
 
-
+                if(index == 122)
+                Debug.Log(tile.transform.position);
             }
         }
     }
