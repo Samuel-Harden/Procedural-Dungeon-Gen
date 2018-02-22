@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+    [SerializeField] Sprite defaultSprite;
+
     private int row;
     private int column;
     private int roomID;
@@ -17,9 +19,9 @@ public class Tile : MonoBehaviour
 
     public Tile parent;
 
-    private int spriteID;
-
     private int spriteIndex;
+
+    private bool update;
 
 
     public void SetData(int _col, int _row, int _roomID, bool _walkable)
@@ -101,21 +103,32 @@ public class Tile : MonoBehaviour
     }
 
 
-
-    public int GetSpriteID()
-    {
-        return spriteID;
-    }
-
-
-    public void SetSpriteID(int _ID)
-    {
-        spriteID = _ID;
-    }
-
-
     public void SetSpriteIndex(int _index)
     {
         spriteIndex = _index;
+    }
+
+
+    public void SetWalkable(bool _walkable)
+    {
+        walkable = _walkable;
+    }
+
+
+    public void SetUpdate(bool _update)
+    {
+        update = _update;
+    }
+
+
+    public bool Update()
+    {
+        return update;
+    }
+
+    
+    public void ResetSprite()
+    {
+        GetComponent<SpriteRenderer>().sprite = defaultSprite;
     }
 }

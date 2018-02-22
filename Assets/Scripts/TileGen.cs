@@ -8,6 +8,7 @@ public class TileGen : MonoBehaviour
 
     [SerializeField] GameObject tilePrefab;
     [SerializeField] List<Sprite> tileSprites;
+    [SerializeField] Camera camera;
 
     private TilePathGen tilePathGen;
 
@@ -58,6 +59,7 @@ public class TileGen : MonoBehaviour
         GenerateTileMap(_rooms);
 
         //CleanUpRooms(_rooms);
+        camera.transform.position = new Vector3(mapWidth / 2, mapHeight, mapHeight / 2);
     }
 
 
@@ -114,16 +116,32 @@ public class TileGen : MonoBehaviour
                 // If tile is not a room create empty tile
                 if (tileMap[h, w] == null)
                 {
-                    tileMap[h, w] = CreateTile(w, h, -1, true);
+                    tileMap[h, w] = CreateTile(w, h, -1, false);
                 }
             }
         }
 
         GenerateCorridorData(_rooms);
 
-        AssignSprites();
+        foreach (Tile tile in tileMap)
+        {
+            AssignSprite(tile);
+
+            AssignInaccessible(tile);
+        }
 
         //Debug.Log(tileMap.Length);
+    }
+
+
+    public void UpdateTiles()
+    {
+        foreach(Tile tile in tileMap)
+        {
+            // If a tile needs updating
+            if(tile.Update())
+                AssignSprite(tile);
+        }
     }
 
 
@@ -134,6 +152,8 @@ public class TileGen : MonoBehaviour
             tilePrefab.transform.rotation);
 
         tile.GetComponent<Tile>().SetData(_posX, _posZ, _roomID, _walkable);
+
+        tile.GetComponent<TileSelect>().SetReferences(this.gameObject);
 
         if (_roomID == -1)
             tile.GetComponent<Renderer>().material.color = Color.black;
@@ -146,14 +166,12 @@ public class TileGen : MonoBehaviour
 
     private void GenerateCorridorData(List<Room> _rooms)
     {
-        //List<Vector3> startPos = new List<Vector3>();
-        //List<Vector3> endPos = new List<Vector3>();
-
         foreach (Room room in _rooms)
         {
             for (int i = room.GetConnectedRooms().Count - 1; i >= 0; i--)
             {
-                tilePathGen.FindPath(room.transform.position, room.GetConnectedRoom(i).transform.position);
+                tilePathGen.FindPath(room.transform.position,
+                    room.GetConnectedRoom(i).transform.position);
 
                 if (!enableDoubleConnection)
                     room.GetConnectedRoom(i).RemoveDuplicateConnection(room.transform.position);
@@ -177,96 +195,108 @@ public class TileGen : MonoBehaviour
     }
 
 
-    private void AssignSprites()
+    public void AssignSprite(Tile _tile)
     {
-        foreach (Tile tile in tileMap)
+        int tileType = 0;
+        int index    = 0;
+
+        bool up    = false;
+        bool down  = false;
+        bool left  = false;
+        bool right = false;
+
+
+        // If room is not blank (ie a room or corridor)
+        if(_tile.GetRoomID() != -1)
         {
-            int tileType = 0;
-            int index    = 0;
-
-            bool up    = false;
-            bool down  = false;
-            bool left  = false;
-            bool right = false;
-
-            // If room is not blank (ie a room or corridor)
-            if(tile.GetRoomID() != -1)
+            //Check Up
+            if(tileMap[_tile.GetRow() + 1, _tile.GetCol()].GetRoomID() != -1)
             {
-                //Check Up
-                if(tileMap[tile.GetRow() + 1, tile.GetCol()].GetRoomID() != -1)
-                {
-                    up = true;
-                    index += 2;
-                }
-
-                //Check Down
-                if (tileMap[tile.GetRow() - 1, tile.GetCol()].GetRoomID() != -1)
-                {
-                   down = true;
-                   index += 64;
-                }
-
-                //Check Left
-                if (tileMap[tile.GetRow(), tile.GetCol() - 1].GetRoomID() != -1)
-                {
-                    left = true;
-                    index += 8;
-                }
-
-                //Check Right
-                if (tileMap[tile.GetRow(), tile.GetCol() + 1].GetRoomID() != -1)
-                {
-                    right = true;
-                    index += 16;
-                }
-
-                // Check Up and Left
-                if(up && left)
-                {
-                    if (tileMap[tile.GetRow() + 1, tile.GetCol() - 1].GetRoomID() != -1)
-                    {
-                        index += 1;
-                    }
-                }
-
-                // Check Up and Right
-                if (up && right)
-                {
-                    if (tileMap[tile.GetRow() + 1, tile.GetCol() + 1].GetRoomID() != -1)
-                    {
-                        index += 4;
-                    }
-                }
-
-                // Check Down and Left
-                if (down && left)
-                {
-                    if (tileMap[tile.GetRow() - 1, tile.GetCol() - 1].GetRoomID() != -1)
-                    {
-                        index += 32;
-                    }
-                }
-
-                // Check Down and Right
-                if (down && right)
-                {
-                    if (tileMap[tile.GetRow() - 1, tile.GetCol() + 1].GetRoomID() != -1)
-                    {
-                        index += 128;
-                    }
-                }
-
-                //tile.SetSpriteIndex(index);
-
-                tile.SetSpriteIndex(index);
-
-                tile.GetComponent<SpriteRenderer>().sprite = tileSprites[GetLookUpValue(index)];
-
-                if(index == 122)
-                Debug.Log(tile.transform.position);
+                up = true;
+                index += 2;
+                tileMap[_tile.GetRow() + 1, _tile.GetCol()].SetUpdate(true);
             }
+
+            //Check Down
+            if (tileMap[_tile.GetRow() - 1, _tile.GetCol()].GetRoomID() != -1)
+            {
+               down = true;
+               index += 64;
+                tileMap[_tile.GetRow() - 1, _tile.GetCol()].SetUpdate(true);
+            }
+
+            //Check Left
+            if (tileMap[_tile.GetRow(), _tile.GetCol() - 1].GetRoomID() != -1)
+            {
+                left = true;
+                index += 8;
+                tileMap[_tile.GetRow(), _tile.GetCol() - 1].SetUpdate(true);
+            }
+
+            //Check Right
+            if (tileMap[_tile.GetRow(), _tile.GetCol() + 1].GetRoomID() != -1)
+            {
+                right = true;
+                index += 16;
+                tileMap[_tile.GetRow(), _tile.GetCol() + 1].SetUpdate(true);
+            }
+
+            // Check Up and Left
+            if(up && left)
+            {
+                if (tileMap[_tile.GetRow() + 1, _tile.GetCol() - 1].GetRoomID() != -1)
+                {
+                    index += 1;
+                    tileMap[_tile.GetRow() + 1, _tile.GetCol() - 1].SetUpdate(true);
+                }
+            }
+
+            // Check Up and Right
+            if (up && right)
+            {
+                if (tileMap[_tile.GetRow() + 1, _tile.GetCol() + 1].GetRoomID() != -1)
+                {
+                    index += 4;
+                    tileMap[_tile.GetRow() + 1, _tile.GetCol() + 1].SetUpdate(true);
+                }
+            }
+
+            // Check Down and Left
+            if (down && left)
+            {
+                if (tileMap[_tile.GetRow() - 1, _tile.GetCol() - 1].GetRoomID() != -1)
+                {
+                    index += 32;
+                    tileMap[_tile.GetRow() - 1, _tile.GetCol() - 1].SetUpdate(true);
+                }
+            }
+
+            // Check Down and Right
+            if (down && right)
+            {
+                if (tileMap[_tile.GetRow() - 1, _tile.GetCol() + 1].GetRoomID() != -1)
+                {
+                    index += 128;
+                    tileMap[_tile.GetRow() - 1, _tile.GetCol() + 1].SetUpdate(true);
+                }
+            }
+
+            //tile.SetSpriteIndex(index);
+
+            _tile.SetSpriteIndex(index);
+
+            _tile.GetComponent<SpriteRenderer>().sprite = tileSprites[GetLookUpValue(index)];
         }
     }
+
+
+    private void AssignInaccessible(Tile tile)
+    {
+        if (tile.GetCol() == 0 || tile.GetCol() == (mapWidth - 1) ||
+            tile.GetRow() == 0 || tile.GetRow() == (mapHeight - 1))
+            tile.GetComponent<TileSelect>().SetInaccessible();
+    }
+
 
     private int GetLookUpValue(int _value)
     {

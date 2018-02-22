@@ -96,6 +96,10 @@ public class DungeonGen : MonoBehaviour
                 }
             }
         }
+
+        // Once setup is complete we can just update our tiles
+        if (setupComplete)
+            tileGenerator.UpdateTiles();
     }
 
 
@@ -120,6 +124,10 @@ public class DungeonGen : MonoBehaviour
 
     private void CheckSetDungeonSize()
     {
+        // Must be at least 30 or bugs occur with room sizes!
+        if (dungeonRadius < 30)
+            dungeonRadius = 30;
+
         if (!randDungeonSize)
         {
             if (dungeonRadius >= minDungeonRadius && dungeonRadius <= maxDungeonRadius)

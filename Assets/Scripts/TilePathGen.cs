@@ -48,7 +48,7 @@ public class TilePathGen : MonoBehaviour
 
             foreach (Tile neighbour in tileGen.GetNeighbours(currentTile))
             {
-                if (!neighbour.GetWalkable() || closedSet.Contains(neighbour))
+                if (/*!neighbour.GetWalkable() ||*/ closedSet.Contains(neighbour))
                         continue;
 
                 int newMovementCostToNeighbour = currentTile.GetGCost() +
