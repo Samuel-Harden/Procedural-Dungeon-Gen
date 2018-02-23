@@ -73,7 +73,7 @@ public class Tile : MonoBehaviour
     }
 
 
-    public bool GetWalkable()
+    public bool IsWalkable()
     {
         return walkable;
     }

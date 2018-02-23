@@ -134,6 +134,12 @@ public class TileGen : MonoBehaviour
     }
 
 
+    public void LoadTileMap(Tile[,] _tilemap)
+    {
+
+    }
+
+
     public void UpdateTiles()
     {
         foreach(Tile tile in tileMap)
@@ -419,6 +425,24 @@ public class TileGen : MonoBehaviour
         }
 
         return neighbours;
+    }
+
+
+    public Tile[,] GetTileMap()
+    {
+        return tileMap;
+    }
+
+
+    public int GetMapWidth()
+    {
+        return mapWidth;
+    }
+
+
+    public int GetMapHeight()
+    {
+        return mapHeight;
     }
 
 

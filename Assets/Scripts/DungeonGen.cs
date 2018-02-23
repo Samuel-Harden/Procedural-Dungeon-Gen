@@ -13,7 +13,8 @@ public class DungeonGen : MonoBehaviour
     [SerializeField] bool EnableDoubleConnections;
 
     [Header("% of Small Rooms (Cannot exceed 100%)")]
-    [SerializeField] int smallRoomPercentage;
+    [SerializeField]
+    int smallRoomPercentage;
 
     [SerializeField] Transform roomContainer;
 
@@ -30,15 +31,17 @@ public class DungeonGen : MonoBehaviour
     private TileGen tileGenerator;
     private PathGen pathGen;
 
+    private bool generateLevel;
+
 
     private void Start()
     {
-        roomGen       = gameObject.GetComponent<RoomGen>();
+        roomGen = gameObject.GetComponent<RoomGen>();
         tileGenerator = gameObject.GetComponent<TileGen>();
-        pathGen       = gameObject.GetComponent<PathGen>();
+        pathGen = gameObject.GetComponent<PathGen>();
 
         positions = new List<Vector3>();
-        rooms     = new List<Room>();
+        rooms = new List<Room>();
 
         CheckSetDungeonSize();
 
@@ -51,26 +54,15 @@ public class DungeonGen : MonoBehaviour
 
     private void Update()
     {
-        bool overlap = false;
-
-        if (!setupComplete)
+        if (generateLevel)
         {
-            foreach (Room room in rooms)
-            {
-                room.CheckSpacing(rooms);
-            }
+            bool overlap = false;
 
-            foreach (Room room in rooms)
+            if (!setupComplete)
             {
-                if (room.IsOverlapping())
-                    overlap = true;
-            }
-
-            if (!overlap)
-            {
-                foreach(Room room in rooms)
+                foreach (Room room in rooms)
                 {
-                    room.SetPos();
+                    room.CheckSpacing(rooms);
                 }
 
                 foreach (Room room in rooms)
@@ -81,25 +73,39 @@ public class DungeonGen : MonoBehaviour
 
                 if (!overlap)
                 {
-                    Vector3 dungeonCentre = new Vector3((float)dungeonRadius / 2, 0.0f,
-                        (float)dungeonRadius / 2);
+                    foreach (Room room in rooms)
+                    {
+                        room.SetPos();
+                    }
 
-                    AddRoomsToContainer();
+                    foreach (Room room in rooms)
+                    {
+                        if (room.IsOverlapping())
+                            overlap = true;
+                    }
 
-                    pathGen.Initialize(rooms, smallRoomPercentage);
+                    if (!overlap)
+                    {
+                        Vector3 dungeonCentre = new Vector3((float)dungeonRadius / 2, 0.0f,
+                            (float)dungeonRadius / 2);
 
-                    if(generateTiles)
-                        tileGenerator.Initialize(pathGen.GetConnectedRooms(), dungeonCentre,
-                            EnableDoubleConnections);
+                        AddRoomsToContainer();
 
-                    setupComplete = true;
+                        pathGen.Initialize(rooms, smallRoomPercentage);
+
+                        if (generateTiles)
+                            tileGenerator.Initialize(pathGen.GetConnectedRooms(), dungeonCentre,
+                                EnableDoubleConnections);
+
+                        setupComplete = true;
+                    }
                 }
             }
-        }
 
-        // Once setup is complete we can just update our tiles
-        if (setupComplete)
-            tileGenerator.UpdateTiles();
+            // Once setup is complete we can just update our tiles
+            if (setupComplete)
+                tileGenerator.UpdateTiles();
+        }
     }
 
 
@@ -138,13 +144,15 @@ public class DungeonGen : MonoBehaviour
     }
 
 
-    /*private void OnDrawGizmos()
+    public void GenerateLevel()
     {
-        Gizmos.color = Color.white;
-
-        foreach (Tile tile in grid)
+        // If a level has already been generated, reset and generate a fresh map
+        if (generateLevel)
         {
-            Gizmos.DrawWireSphere(tile.transform.position, 1);
+
         }
-    }*/
+
+
+        generateLevel = true;
+    }
 }

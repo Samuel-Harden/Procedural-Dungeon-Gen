@@ -79,16 +79,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\DungeonGen.cs" />
-    <Compile Include="Assets\Scripts\MouseStatus.cs" />
-    <Compile Include="Assets\Scripts\Node.cs" />
-    <Compile Include="Assets\Scripts\PathGen.cs" />
-    <Compile Include="Assets\Scripts\Room.cs" />
-    <Compile Include="Assets\Scripts\RoomGen.cs" />
-    <Compile Include="Assets\Scripts\Tile.cs" />
-    <Compile Include="Assets\Scripts\TileGen.cs" />
-    <Compile Include="Assets\Scripts\TilePathGen.cs" />
-    <Compile Include="Assets\Scripts\TileSelect.cs" />
-    <Compile Include="Assets\Scripts\Triangulation.cs" />
+    <Compile Include="Assets\Scripts\DungeonLayout\PathGen.cs" />
+    <Compile Include="Assets\Scripts\DungeonLayout\Room.cs" />
+    <Compile Include="Assets\Scripts\DungeonLayout\RoomGen.cs" />
+    <Compile Include="Assets\Scripts\LoadSaveManager.cs" />
+    <Compile Include="Assets\Scripts\Map.cs" />
+    <Compile Include="Assets\Scripts\MapData.cs" />
+    <Compile Include="Assets\Scripts\TileGeneration\Tile.cs" />
+    <Compile Include="Assets\Scripts\TileGeneration\TileGen.cs" />
+    <Compile Include="Assets\Scripts\TileGeneration\TilePathGen.cs" />
+    <Compile Include="Assets\Scripts\TileGeneration\Triangulation.cs" />
+    <Compile Include="Assets\Scripts\Utility\MouseStatus.cs" />
+    <Compile Include="Assets\Scripts\Utility\TileSelect.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
