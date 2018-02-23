@@ -17,38 +17,32 @@ public class DungeonGen : MonoBehaviour
     int smallRoomPercentage;
 
     [SerializeField] Transform roomContainer;
+    [SerializeField] Camera camera;
 
     private int minDungeonRadius = 50;
     private int maxDungeonRadius = 100;
 
     private RoomGen roomGen;
+    private TileGen tileGen;
+    private PathGen pathGen;
+    private MouseStatus mouseStatus;
 
-    private List<Vector3> positions;
     private List<Room> rooms;
 
     private bool setupComplete;
 
-    private TileGen tileGenerator;
-    private PathGen pathGen;
-
-    private bool generateLevel;
+    private bool generateLevel = false;
+    private bool firstMap = true;
 
 
     private void Start()
     {
-        roomGen = gameObject.GetComponent<RoomGen>();
-        tileGenerator = gameObject.GetComponent<TileGen>();
-        pathGen = gameObject.GetComponent<PathGen>();
+        roomGen     = GetComponent<RoomGen>();
+        tileGen     = GetComponent<TileGen>();
+        pathGen     = GetComponent<PathGen>();
+        mouseStatus = GetComponent<MouseStatus>();
 
-        positions = new List<Vector3>();
         rooms = new List<Room>();
-
-        CheckSetDungeonSize();
-
-        roomGen.GenerateRooms(rooms, roomCount,
-            dungeonRadius, randNoRooms);
-
-        LimitSmallRoomCount();
     }
 
 
@@ -94,17 +88,33 @@ public class DungeonGen : MonoBehaviour
                         pathGen.Initialize(rooms, smallRoomPercentage);
 
                         if (generateTiles)
-                            tileGenerator.Initialize(pathGen.GetConnectedRooms(), dungeonCentre,
+                            tileGen.Initialize(pathGen.GetConnectedRooms(), dungeonCentre,
                                 EnableDoubleConnections);
+
+                        camera.transform.position = new Vector3(tileGen.GetMapWidth() / 2,
+                            tileGen.GetMapHeight(), tileGen.GetMapHeight() / 2);
+
+                        int minZoom = 0;
+
+                        if (tileGen.GetMapHeight() > tileGen.GetMapWidth())
+                            minZoom = tileGen.GetMapHeight();
+
+                        else
+                            minZoom = tileGen.GetMapWidth();
+
+                        mouseStatus.SetZoomLevel(minZoom);
 
                         setupComplete = true;
                     }
                 }
             }
+        }
 
-            // Once setup is complete we can just update our tiles
-            if (setupComplete)
-                tileGenerator.UpdateTiles();
+        // Once setup is complete we can just update our tiles
+        if (setupComplete)
+        {
+            tileGen.UpdateTiles();
+            generateLevel = false;
         }
     }
 
@@ -146,13 +156,37 @@ public class DungeonGen : MonoBehaviour
 
     public void GenerateLevel()
     {
-        // If a level has already been generated, reset and generate a fresh map
-        if (generateLevel)
-        {
+        ResetMap();
 
-        }
+        CheckSetDungeonSize();
 
+        roomGen.GenerateRooms(rooms, roomCount,
+            dungeonRadius, randNoRooms);
+
+        LimitSmallRoomCount();
 
         generateLevel = true;
+    }
+
+
+    private void ResetMap()
+    {
+        foreach(Room room in rooms)
+        {
+            if(room != null)
+                Destroy(room.gameObject, 0.2f);
+        }
+
+        rooms.Clear();
+
+        tileGen.ClearTiles();
+
+        pathGen.ClearRooms();
+
+        roomGen.ResetRoomCount();
+
+        setupComplete = false;
+
+        firstMap = false;
     }
 }

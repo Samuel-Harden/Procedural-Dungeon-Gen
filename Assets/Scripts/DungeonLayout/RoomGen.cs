@@ -151,4 +151,12 @@ public class RoomGen : MonoBehaviour
 
         roomCount = Random.Range(minRoomCount, maxRoomCount);
     }
+
+
+    public void ResetRoomCount()
+    {
+        currentSmall = 0;
+        currentMedium = 0;
+        currentLarge = 0;
+    }
 }

@@ -8,13 +8,10 @@ public class TileGen : MonoBehaviour
 
     [SerializeField] GameObject tilePrefab;
     [SerializeField] List<Sprite> tileSprites;
-    [SerializeField] Camera camera;
 
     private TilePathGen tilePathGen;
 
     private Tile[,] tileMap;
-
-    private List<int> spritePosValue;
 
     private int minPosX;
     private int maxPosX;
@@ -59,7 +56,6 @@ public class TileGen : MonoBehaviour
         GenerateTileMap(_rooms);
 
         //CleanUpRooms(_rooms);
-        camera.transform.position = new Vector3(mapWidth / 2, mapHeight, mapHeight / 2);
     }
 
 
@@ -146,7 +142,10 @@ public class TileGen : MonoBehaviour
         {
             // If a tile needs updating
             if(tile.Update())
+            {
                 AssignSprite(tile);
+                tile.SetUpdate(false);
+            }
         }
     }
 
@@ -287,8 +286,6 @@ public class TileGen : MonoBehaviour
                 }
             }
 
-            //tile.SetSpriteIndex(index);
-
             _tile.SetSpriteIndex(index);
 
             _tile.GetComponent<SpriteRenderer>().sprite = tileSprites[GetLookUpValue(index)];
@@ -425,6 +422,23 @@ public class TileGen : MonoBehaviour
         }
 
         return neighbours;
+    }
+
+
+    public void ClearTiles()
+    {
+        if(tileMap != null)
+        {
+            foreach (Tile tile in tileMap)
+            {
+                if (tile != null)
+                    Destroy(tile.gameObject, 0.2f);
+            }
+
+            Debug.Log("Cleared Tiles");
+
+            tileMap = new Tile[mapHeight, mapWidth];
+        }
     }
 
 

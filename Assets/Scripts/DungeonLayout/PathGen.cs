@@ -161,4 +161,19 @@ public class PathGen : MonoBehaviour
     {
         return connectedRooms;
     }
+
+
+    public void ClearRooms()
+    {
+        if(roomsToCheck != null)
+            roomsToCheck.Clear();
+
+        if (connectedRooms != null)
+            connectedRooms.Clear();
+
+        if (unConnectedRooms != null)
+            unConnectedRooms.Clear();
+
+        roomNo = 0;
+    }
 }

@@ -9,8 +9,8 @@ public class MouseStatus : MonoBehaviour
     private bool mouseWheelDown;
 
     [SerializeField] Camera camera;
-    [SerializeField] int maxZoom = 5;
-    [SerializeField] int minZoom = 30;
+    private int maxZoom = 5;
+    private int minZoom = 30;
 
     private float speed = 50; // Pan Speed
 
@@ -72,21 +72,27 @@ public class MouseStatus : MonoBehaviour
         float zoom = 0;
 
         if (Input.GetAxis("Mouse ScrollWheel") < 0)
-            zoom++;
+            zoom = 5;
 
         if (Input.GetAxis("Mouse ScrollWheel") > 0)
-            zoom--;
+            zoom = -5;
 
         camera.transform.position = new Vector3(camera.transform.position.x,
             camera.transform.position.y + zoom, camera.transform.position.z);
 
         // Limit Zoom
-        if (camera.transform.position.y < 5)
+        if (camera.transform.position.y < maxZoom)
             camera.transform.position = new Vector3(camera.transform.position.x, maxZoom,
                 camera.transform.position.z);
 
-        else if (camera.transform.position.y > 30)
+        else if (camera.transform.position.y > minZoom)
             camera.transform.position = new Vector3(camera.transform.position.x, minZoom,
                 camera.transform.position.z);
+    }
+
+
+    public void SetZoomLevel(int _minZoom)
+    {
+        minZoom = _minZoom;
     }
 }

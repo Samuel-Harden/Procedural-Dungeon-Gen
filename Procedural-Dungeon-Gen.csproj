@@ -84,7 +84,6 @@
     <Compile Include="Assets\Scripts\DungeonLayout\RoomGen.cs" />
     <Compile Include="Assets\Scripts\LoadSaveManager.cs" />
     <Compile Include="Assets\Scripts\Map.cs" />
-    <Compile Include="Assets\Scripts\MapData.cs" />
     <Compile Include="Assets\Scripts\TileGeneration\Tile.cs" />
     <Compile Include="Assets\Scripts\TileGeneration\TileGen.cs" />
     <Compile Include="Assets\Scripts\TileGeneration\TilePathGen.cs" />
