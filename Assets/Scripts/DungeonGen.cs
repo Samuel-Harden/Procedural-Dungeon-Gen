@@ -91,18 +91,7 @@ public class DungeonGen : MonoBehaviour
                             tileGen.Initialize(pathGen.GetConnectedRooms(), dungeonCentre,
                                 EnableDoubleConnections);
 
-                        camera.transform.position = new Vector3(tileGen.GetMapWidth() / 2,
-                            tileGen.GetMapHeight(), tileGen.GetMapHeight() / 2);
-
-                        int minZoom = 0;
-
-                        if (tileGen.GetMapHeight() > tileGen.GetMapWidth())
-                            minZoom = tileGen.GetMapHeight();
-
-                        else
-                            minZoom = tileGen.GetMapWidth();
-
-                        mouseStatus.SetZoomLevel(minZoom);
+                        SetupCamera();
 
                         setupComplete = true;
                     }
@@ -169,7 +158,24 @@ public class DungeonGen : MonoBehaviour
     }
 
 
-    private void ResetMap()
+    private void SetupCamera()
+    {
+        camera.transform.position = new Vector3(tileGen.GetMapWidth() / 2,
+            tileGen.GetMapHeight(), tileGen.GetMapHeight() / 2);
+
+        int minZoom = 0;
+
+        if (tileGen.GetMapHeight() > tileGen.GetMapWidth())
+            minZoom = tileGen.GetMapHeight();
+
+        else
+            minZoom = tileGen.GetMapWidth();
+
+        mouseStatus.SetZoomLevel(minZoom);
+    }
+
+
+    public void ResetMap()
     {
         foreach(Room room in rooms)
         {
@@ -188,5 +194,21 @@ public class DungeonGen : MonoBehaviour
         setupComplete = false;
 
         firstMap = false;
+    }
+
+
+    public void SetupLoadedLevel()
+    {
+        setupComplete = true;
+
+        firstMap = false;
+
+        SetupCamera();
+    }
+
+
+    public bool FirstMap()
+    {
+        return firstMap;
     }
 }

@@ -1,40 +1,60 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿
 using UnityEngine;
 using System.IO;
+using UnityEditor;
 
 public class LoadSaveManager : MonoBehaviour
 {
-    [SerializeField]TileGen tileGen;
+    private DungeonGen dungeonGen;
+    private TileGen tileGen;
 
     private string filePath;
+    private string fileLocation;
 
 
     private void Awake()
     {
         tileGen = GetComponent<TileGen>();
+        dungeonGen = GetComponent<DungeonGen>();
 
-        filePath = Path.Combine(Application.dataPath, "Level.json");
+        filePath = Path.Combine(Application.dataPath + "/Resources/MapData", "Level.json");
+
+        fileLocation = "MapData/";
     }
 
 
     public void SaveLevel()
     {
-        // Get data from mapData and save
-        string jsonString = JsonUtility.ToJson(GenerateSaveData());
+        if (tileGen.GetTileMap() != null)
+        {
+            // Get data from mapData and save
+            string jsonString = JsonUtility.ToJson(GenerateSaveData());
 
-        // Write to JSON
-        File.WriteAllText(filePath, jsonString);
+            // Write to JSON
+            File.WriteAllText(filePath, jsonString);
 
-        Debug.Log("Level Saved");
+            AssetDatabase.Refresh();
+
+            Debug.Log("Level Saved");
+        }
+
+        else
+            Debug.Log("Unable to Save, no data available");
 
     }
 
 
     public void LoadLevel()
-    {
+    {     
+        if(!dungeonGen.FirstMap())
+        {
+            dungeonGen.ResetMap();
+        }
+
         // Read data from selected level and generate
         GenerateLoadData();
+
+        dungeonGen.SetupLoadedLevel();
 
         // Initialise loaded level
 
@@ -48,47 +68,49 @@ public class LoadSaveManager : MonoBehaviour
     }
 
 
-    private Map GenerateSaveData()
+    private LevelData GenerateSaveData()
     {
-        Map map = new Map();
+        LevelData data = new LevelData();
 
         // What do we want to save?
         // Map height and width
         // is a tile walkable? (ie a dungeon tile or not)
-
         foreach (Tile tile in tileGen.GetTileMap())
         {
             if (tile.IsWalkable())
             {
-                map.tileTypes.Add(0);
+                data.tileTypes.Add(0);
                 continue;
             }
 
-            map.tileTypes.Add(-1);
+            data.tileTypes.Add(-1);
         }
 
-        map.mapWidth = tileGen.GetMapWidth();
-        map.mapHeight = tileGen.GetMapHeight();
+        data.mapWidth  = tileGen.GetMapWidth();
+        data.mapHeight = tileGen.GetMapHeight();
 
-        return map;
+        return data;
     }
 
 
     private void GenerateLoadData()
     {
-        Map map = new Map();
+        LevelData data = new LevelData();
 
-        TextAsset asset = Resources.Load<TextAsset>("Level");
+        TextAsset asset = Resources.Load<TextAsset>(fileLocation + "Level");
 
         if (asset != null)
         {
-            map = JsonUtility.FromJson<Map>(asset.text);
+            data = JsonUtility.FromJson<LevelData>(asset.text);
+
+            tileGen.LoadTileMap(data);
+
+            Debug.Log("Map Loaded");
         }
 
         else
             Debug.Log("Asset is Null");
 
         //return map;
-        Debug.Log("Map Loaded");
     }
 }

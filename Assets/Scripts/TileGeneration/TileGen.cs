@@ -130,9 +130,36 @@ public class TileGen : MonoBehaviour
     }
 
 
-    public void LoadTileMap(Tile[,] _tilemap)
+    public void LoadTileMap(LevelData _levelData)
     {
+        tileMap = new Tile[_levelData.mapHeight, _levelData.mapWidth];
 
+        mapHeight = _levelData.mapHeight;
+        mapWidth  = _levelData.mapWidth;
+
+        int i = 0;
+
+        bool walkable;
+
+        for (int h = 0; h < _levelData.mapHeight; h++)
+        {
+            for (int w = 0; w < _levelData.mapWidth; w++)
+            {
+                if (_levelData.tileTypes[i] == -1)
+                    walkable = false;
+
+                else
+                    walkable = true;
+
+                tileMap[h, w] = CreateTile(w, h, _levelData.tileTypes[i], walkable);
+
+                tileMap[h, w].SetUpdate(true);
+
+                AssignInaccessible(tileMap[h, w]);
+
+                i++;
+            }
+        }
     }
 
 
@@ -193,6 +220,7 @@ public class TileGen : MonoBehaviour
             // if this tile is not a room or corridor
             if (tile.GetRoomID() == -1)
             {
+                tile.SetWalkable(true);
                 tile.SetRoomID(0);
                 tile.GetComponent<Renderer>().material.color = Color.white;
             }
