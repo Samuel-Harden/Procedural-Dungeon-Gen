@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.IO;
 using UnityEditor;
+using System.Collections.Generic;
 
 public class LoadSaveManager : MonoBehaviour
 {
@@ -11,11 +12,15 @@ public class LoadSaveManager : MonoBehaviour
     private string filePath;
     private string fileLocation;
 
+    private List<string> savedLevels;
+
 
     private void Awake()
     {
         tileGen = GetComponent<TileGen>();
         dungeonGen = GetComponent<DungeonGen>();
+
+        savedLevels = new List<string>();
 
         fileLocation = "MapData/";
     }
@@ -48,34 +53,36 @@ public class LoadSaveManager : MonoBehaviour
     }
 
 
-    public void LoadLevel()
+    public void LoadLevel(string _fileName)
     {
-        /*if(!dungeonGen.FirstMap())
+        if(!dungeonGen.FirstMap())
         {
             dungeonGen.ResetMap();
         }
 
         // Read data from selected level and generate
-        GenerateLoadData();
+        GenerateLoadData(_fileName);
 
-        dungeonGen.SetupLoadedLevel();*/
+        dungeonGen.SetupLoadedLevel();
+    }
 
-        // Initialise loaded level
+
+    public List<string> GenerateLevelList()
+    {
+        // generate a list of saved levels
+
+        // Clear out List
+        savedLevels.Clear();
 
         // Get the name of each level in save folder (Only retreive json files!
         foreach (string file in System.IO.Directory.
             GetFiles("Assets/Resources/MapData/" + "/", "*.json"))
         {
+            savedLevels.Add(file);
             Debug.Log(file);
         }
 
-    }
-
-
-    public void GenerateLevelList()
-    {
-        // generate a list of saved levels
-
+        return savedLevels;
     }
 
 
@@ -104,11 +111,15 @@ public class LoadSaveManager : MonoBehaviour
     }
 
 
-    private void GenerateLoadData()
+    private void GenerateLoadData(string _fileName)
     {
         LevelData data = new LevelData();
 
-        TextAsset asset = Resources.Load<TextAsset>(fileLocation + "Level");
+        string remove = ".json";
+
+        _fileName = _fileName.Replace(remove, "");
+
+        TextAsset asset = Resources.Load<TextAsset>(fileLocation + _fileName);
 
         if (asset != null)
         {

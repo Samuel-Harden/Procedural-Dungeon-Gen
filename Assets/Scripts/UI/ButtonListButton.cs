@@ -5,20 +5,23 @@ using UnityEngine.UI;
 
 public class ButtonListButton : MonoBehaviour
 {
-    [SerializeField] Text myText;
-
+    [SerializeField] Text fileName;
     [SerializeField] ButtonListControl buttonControl;
 
 
     // Assign Button Text (level name)
-    public void SetText(string _text)
+    public void SetText(string _fileName)
     {
-        myText.text = _text;
+        string remove = "Assets/Resources/MapData/";
+        fileName.text = _fileName;
+
+        fileName.text = fileName.text.Replace(remove, "");
     }
 
 
+    // pass the level name to be loaded
     public void OnClick()
     {
-        buttonControl.ButtonClicked(myText.ToString());
+        buttonControl.ButtonClicked(fileName.text);
     }
 }

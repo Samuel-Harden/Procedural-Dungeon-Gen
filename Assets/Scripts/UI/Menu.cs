@@ -1,14 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
+
 
 public class Menu : MonoBehaviour
 {
     [SerializeField] Canvas quitMenu;
     [SerializeField] Canvas newLevelMenu;
     [SerializeField] Canvas loadLevelMenu;
+
+    [SerializeField] ButtonListControl buttonControl;
+    [SerializeField] LoadSaveManager loadSaveManager;
 
 
     // Use this for initialization
@@ -46,16 +46,12 @@ public class Menu : MonoBehaviour
 
     public void LoadLevelPress()
     {
+        buttonControl.SetLoadList(loadSaveManager.GenerateLevelList());
+
         loadLevelMenu.enabled = true;
 
         quitMenu.enabled = false;
         newLevelMenu.enabled = false;
-    }
-
-
-    public void startEditor()
-    {
-        SceneManager.LoadScene("LevelEditor");
     }
 
 

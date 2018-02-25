@@ -90,7 +90,7 @@
     <Compile Include="Assets\Scripts\TileGeneration\Triangulation.cs" />
     <Compile Include="Assets\Scripts\UI\ButtonListButton.cs" />
     <Compile Include="Assets\Scripts\UI\ButtonListControl.cs" />
-    <Compile Include="Assets\Scripts\Utility\Menu.cs" />
+    <Compile Include="Assets\Scripts\UI\Menu.cs" />
     <Compile Include="Assets\Scripts\Utility\MouseStatus.cs" />
     <Compile Include="Assets\Scripts\Utility\TileSelect.cs" />
   </ItemGroup>

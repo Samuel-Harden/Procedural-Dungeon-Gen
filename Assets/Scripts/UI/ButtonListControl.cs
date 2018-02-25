@@ -5,27 +5,54 @@ using UnityEngine;
 public class ButtonListControl : MonoBehaviour
 {
     [SerializeField] GameObject buttonTemplate;
+    [SerializeField] LoadSaveManager loadSaveManager;
+
+    private List<GameObject> buttons;
 
 
     private void Start()
     {
+        buttons = new List<GameObject>();
+    }
+
+
+    public void SetLoadList(List<string> _savedlevels)
+    {
+        if (buttons.Count != 0)
+            ClearButtons();
+
+        foreach(string levelName in _savedlevels)
         {
-            for (int i = 0; i < 20; i++)
-            {
-                GameObject button = Instantiate(buttonTemplate) as GameObject;
+            GameObject button = Instantiate(buttonTemplate) as GameObject;
 
-                button.SetActive(true);
+            button.SetActive(true);
 
-                button.GetComponent<ButtonListButton>().SetText("Button No: " + i);
+            button.GetComponent<ButtonListButton>().SetText(levelName);
 
-                button.transform.SetParent(buttonTemplate.transform.parent, false);
-            }
+            button.transform.SetParent(buttonTemplate.transform.parent, false);
+
+            buttons.Add(button);
         }
     }
 
 
-    public void ButtonClicked(string _text)
+    // Clear any Buttons
+    private void ClearButtons()
     {
-        Debug.Log(_text);
+        for (int i = buttons.Count - 1; i >= 0; i--)
+        {
+            Destroy(buttons[i], 0.2f);
+        }
+
+        buttons.Clear();
+    }
+
+
+    public void ButtonClicked(string _fileName)
+    {
+        // Close menus
+
+        // Call LoadSave manager and load level
+        loadSaveManager.LoadLevel(_fileName);
     }
 }
