@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class MouseStatus : MonoBehaviour
 {
-    public bool mouseLeftDown;
-    public bool mouseRightDown;
+    private bool mouseLeftDown;
+    private bool mouseRightDown;
     private bool mouseWheelDown;
 
     [SerializeField] Camera camera;
@@ -94,5 +94,17 @@ public class MouseStatus : MonoBehaviour
     public void SetZoomLevel(int _minZoom)
     {
         minZoom = _minZoom;
+    }
+
+
+    public bool GetMouseLeftDown()
+    {
+        return mouseLeftDown;
+    }
+
+
+    public bool GetMouseRightDown()
+    {
+        return mouseRightDown;
     }
 }

@@ -1,4 +1,4 @@
-﻿
+﻿using System;
 using UnityEngine;
 using System.IO;
 using UnityEditor;
@@ -17,8 +17,6 @@ public class LoadSaveManager : MonoBehaviour
         tileGen = GetComponent<TileGen>();
         dungeonGen = GetComponent<DungeonGen>();
 
-        filePath = Path.Combine(Application.dataPath + "/Resources/MapData", "Level.json");
-
         fileLocation = "MapData/";
     }
 
@@ -27,6 +25,12 @@ public class LoadSaveManager : MonoBehaviour
     {
         if (tileGen.GetTileMap() != null)
         {
+            // Get TimeStamp for level save
+            string filename = "mapData" + DateTime.Now.ToString("(hhmmss)(ddMMyyyy)") + ".json";
+
+            // Update filePath
+            filePath = Path.Combine(Application.dataPath + "/Resources/MapData", filename);
+
             // Get data from mapData and save
             string jsonString = JsonUtility.ToJson(GenerateSaveData());
 
@@ -45,8 +49,8 @@ public class LoadSaveManager : MonoBehaviour
 
 
     public void LoadLevel()
-    {     
-        if(!dungeonGen.FirstMap())
+    {
+        /*if(!dungeonGen.FirstMap())
         {
             dungeonGen.ResetMap();
         }
@@ -54,9 +58,16 @@ public class LoadSaveManager : MonoBehaviour
         // Read data from selected level and generate
         GenerateLoadData();
 
-        dungeonGen.SetupLoadedLevel();
+        dungeonGen.SetupLoadedLevel();*/
 
         // Initialise loaded level
+
+        // Get the name of each level in save folder (Only retreive json files!
+        foreach (string file in System.IO.Directory.
+            GetFiles("Assets/Resources/MapData/" + "/", "*.json"))
+        {
+            Debug.Log(file);
+        }
 
     }
 

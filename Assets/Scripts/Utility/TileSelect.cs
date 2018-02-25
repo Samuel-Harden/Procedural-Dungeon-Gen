@@ -23,7 +23,7 @@ public class TileSelect : MonoBehaviour
     {
         GetComponent<SpriteRenderer>().material.color = Color.green;
 
-        if (mouse.mouseLeftDown)
+        if (mouse.GetMouseLeftDown())
         {
             if (inaccessible)
                 return;
@@ -37,7 +37,7 @@ public class TileSelect : MonoBehaviour
             return;
         }
 
-        if (mouse.mouseRightDown)
+        if (mouse.GetMouseRightDown())
         {
             if (inaccessible)
                 return;
